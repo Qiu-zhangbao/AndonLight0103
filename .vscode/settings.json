@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "unordered_map": "cpp",
+        "system_error": "cpp",
+        "wiced_bt_trace.h": "c",
+        "config.h": "c",
+        "version.h": "c",
+        "andonpair.h": "c",
+        "wiced_bt_mesh_provision.h": "c",
+        "adv_pack.h": "c",
+        "wiced_hal_nvram.h": "c"
+    }
+}
