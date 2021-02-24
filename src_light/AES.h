@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-// ÎÄ ¼þ Ãû£ºAES.h
-// Ãè    Êö£ºAES¼ÓÃÜËã·¨
-// ´´ ½¨ ÈË£ºLiangbofu
-// ´´½¨ÈÕÆÚ£º2009-07-17
+// æ–‡ ä»¶ åï¼šAES.h
+// æ    è¿°ï¼šAESåŠ å¯†ç®—æ³•
+// åˆ› å»º äººï¼šLiangbofu
+// åˆ›å»ºæ—¥æœŸï¼š2009-07-17
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef __AES_H
 #define __AES_H
@@ -11,44 +11,44 @@
 	extern "C" {
 #endif
 
-// ÒÔbitÎªµ¥Î»µÄÃÜÔ¿³¤¶È£¬Ö»ÄÜÎª 128£¬192 ºÍ 256 ÈýÖÖ
+// ä»¥bitä¸ºå•ä½çš„å¯†é’¥é•¿åº¦ï¼Œåªèƒ½ä¸º 128ï¼Œ192 å’Œ 256 ä¸‰ç§
 #define AES_KEY_LENGTH	128
 
-// ¼Ó½âÃÜÄ£Ê½
-#define AES_MODE_ECB	0				// µç×ÓÃÜÂë±¾Ä£Ê½£¨Ò»°ãÄ£Ê½£©
-#define AES_MODE_CBC	1				// ÃÜÂë·Ö×éÁ´½ÓÄ£Ê½
+// åŠ è§£å¯†æ¨¡å¼
+#define AES_MODE_ECB	0				// ç”µå­å¯†ç æœ¬æ¨¡å¼ï¼ˆä¸€èˆ¬æ¨¡å¼ï¼‰
+#define AES_MODE_CBC	1				// å¯†ç åˆ†ç»„é“¾æŽ¥æ¨¡å¼
 #define AES_MODE		AES_MODE_CBC
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//	º¯ÊýÃû£º	AES_Init
-//	ÃèÊö£º		³õÊ¼»¯£¬ÔÚ´ËÖ´ÐÐÀ©Õ¹ÃÜÔ¿²Ù×÷¡£
-//	ÊäÈë²ÎÊý£º	pKey -- Ô­Ê¼ÃÜÔ¿£¬Æä³¤¶È±ØÐëÎª AES_KEY_LENGTH/8 ×Ö½Ú¡£
-//	Êä³ö²ÎÊý£º	ÎÞ¡£
-//	·µ»ØÖµ£º	ÎÞ¡£
+//	å‡½æ•°åï¼š	AES_Init
+//	æè¿°ï¼š		åˆå§‹åŒ–ï¼Œåœ¨æ­¤æ‰§è¡Œæ‰©å±•å¯†é’¥æ“ä½œã€‚
+//	è¾“å…¥å‚æ•°ï¼š	pKey -- åŽŸå§‹å¯†é’¥ï¼Œå…¶é•¿åº¦å¿…é¡»ä¸º AES_KEY_LENGTH/8 å­—èŠ‚ã€‚
+//	è¾“å‡ºå‚æ•°ï¼š	æ— ã€‚
+//	è¿”å›žå€¼ï¼š	æ— ã€‚
 ///////////////////////////////////////////////////////////////////////////////
 void AES_Init(const void *pKey);
 
 //////////////////////////////////////////////////////////////////////////
-//	º¯ÊýÃû£º	AES_Encrypt
-//	ÃèÊö£º		¼ÓÃÜÊý¾Ý
-//	ÊäÈë²ÎÊý£º	pPlainText	-- Ã÷ÎÄ£¬¼´Ðè¼ÓÃÜµÄÊý¾Ý£¬Æä³¤¶ÈÎªnDataLen×Ö½Ú¡£
-//				nDataLen	-- Êý¾Ý³¤¶È£¬ÒÔ×Ö½ÚÎªµ¥Î»£¬±ØÐëÎªAES_KEY_LENGTH/8µÄÕû±¶Êý¡£
-//				pIV			-- ³õÊ¼»¯ÏòÁ¿£¬Èç¹ûÊ¹ÓÃECBÄ£Ê½£¬¿ÉÉèÎªNULL¡£
-//	Êä³ö²ÎÊý£º	pCipherText	-- ÃÜÎÄ£¬¼´ÓÉÃ÷ÎÄ¼ÓÃÜºóµÄÊý¾Ý£¬¿ÉÒÔÓëpPlainTextÏàÍ¬¡£
-//	·µ»ØÖµ£º	ÎÞ¡£
+//	å‡½æ•°åï¼š	AES_Encrypt
+//	æè¿°ï¼š		åŠ å¯†æ•°æ®
+//	è¾“å…¥å‚æ•°ï¼š	pPlainText	-- æ˜Žæ–‡ï¼Œå³éœ€åŠ å¯†çš„æ•°æ®ï¼Œå…¶é•¿åº¦ä¸ºnDataLenå­—èŠ‚ã€‚
+//				nDataLen	-- æ•°æ®é•¿åº¦ï¼Œä»¥å­—èŠ‚ä¸ºå•ä½ï¼Œå¿…é¡»ä¸ºAES_KEY_LENGTH/8çš„æ•´å€æ•°ã€‚
+//				pIV			-- åˆå§‹åŒ–å‘é‡ï¼Œå¦‚æžœä½¿ç”¨ECBæ¨¡å¼ï¼Œå¯è®¾ä¸ºNULLã€‚
+//	è¾“å‡ºå‚æ•°ï¼š	pCipherText	-- å¯†æ–‡ï¼Œå³ç”±æ˜Žæ–‡åŠ å¯†åŽçš„æ•°æ®ï¼Œå¯ä»¥ä¸ŽpPlainTextç›¸åŒã€‚
+//	è¿”å›žå€¼ï¼š	æ— ã€‚
 //////////////////////////////////////////////////////////////////////////
 void AES_Encrypt(const unsigned char *pPlainText, unsigned char *pCipherText, 
 				 unsigned int nDataLen, const unsigned char *pIV);
 
 //////////////////////////////////////////////////////////////////////////
-//	º¯ÊýÃû£º	AES_Decrypt
-//	ÃèÊö£º		½âÃÜÊý¾Ý
-//	ÊäÈë²ÎÊý£º	pCipherText -- ÃÜÎÄ£¬¼´Ðè½âÃÜµÄÊý¾Ý£¬Æä³¤¶ÈÎªnDataLen×Ö½Ú¡£
-//				nDataLen	-- Êý¾Ý³¤¶È£¬ÒÔ×Ö½ÚÎªµ¥Î»£¬±ØÐëÎªAES_KEY_LENGTH/8µÄÕû±¶Êý¡£
-//				pIV			-- ³õÊ¼»¯ÏòÁ¿£¬Èç¹ûÊ¹ÓÃECBÄ£Ê½£¬¿ÉÉèÎªNULL¡£
-//	Êä³ö²ÎÊý£º	pPlainText  -- Ã÷ÎÄ£¬¼´ÓÉÃÜÎÄ½âÃÜºóµÄÊý¾Ý£¬¿ÉÒÔÓëpCipherTextÏàÍ¬¡£
-//	·µ»ØÖµ£º	ÎÞ¡£
+//	å‡½æ•°åï¼š	AES_Decrypt
+//	æè¿°ï¼š		è§£å¯†æ•°æ®
+//	è¾“å…¥å‚æ•°ï¼š	pCipherText -- å¯†æ–‡ï¼Œå³éœ€è§£å¯†çš„æ•°æ®ï¼Œå…¶é•¿åº¦ä¸ºnDataLenå­—èŠ‚ã€‚
+//				nDataLen	-- æ•°æ®é•¿åº¦ï¼Œä»¥å­—èŠ‚ä¸ºå•ä½ï¼Œå¿…é¡»ä¸ºAES_KEY_LENGTH/8çš„æ•´å€æ•°ã€‚
+//				pIV			-- åˆå§‹åŒ–å‘é‡ï¼Œå¦‚æžœä½¿ç”¨ECBæ¨¡å¼ï¼Œå¯è®¾ä¸ºNULLã€‚
+//	è¾“å‡ºå‚æ•°ï¼š	pPlainText  -- æ˜Žæ–‡ï¼Œå³ç”±å¯†æ–‡è§£å¯†åŽçš„æ•°æ®ï¼Œå¯ä»¥ä¸ŽpCipherTextç›¸åŒã€‚
+//	è¿”å›žå€¼ï¼š	æ— ã€‚
 //////////////////////////////////////////////////////////////////////////
 void AES_Decrypt(unsigned char *pPlainText, const unsigned char *pCipherText, 
 				 unsigned int nDataLen, const unsigned char *pIV);
