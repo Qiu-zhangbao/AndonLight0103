@@ -687,6 +687,10 @@ void lightGetStatus(uint8_t *current, uint8_t *targe, uint16_t *transtime)
     }
     LOG_DEBUG("period:%d  PrePowerTick:%d  tick:%d\n",ctx.period,PrePowerTick,ctx.tick);
     temp = (ctx.period+PrePowerTick)>ctx.tick?(ctx.period+PrePowerTick-ctx.tick)*LIGHT_TIMER_CB_LENGTH/10:0;
+    if((ctx.anim != turn_onoff_procedure) && (ctx.anim != brightness_procedure))
+    {
+        temp = 0;
+    }
     LOG_DEBUG("time: %d\n",temp);
     if(temp > 30000){
         temp = (temp+50)/100;
