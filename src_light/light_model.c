@@ -91,7 +91,8 @@ int8_t uint16_to_percentage(uint16_t value);
 int32_t light_flashing(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 int32_t light_sniffer(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 int32_t light_flashandsniffer(int32_t tick, int32_t period, int32_t initiate, int32_t final);
-
+int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int32_t final);
+int32_t brightness_procedure(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 
 static int32_t flashandsniffer_allcycle,flashandsniffer_flashcycle,flashandsniffer_sniffercycle; //flashandsniffer_times;
 static int32_t flashandsniffer_flashtimes,flashandsniffer_sniffertimes; 
