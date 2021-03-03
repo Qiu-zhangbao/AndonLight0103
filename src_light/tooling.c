@@ -39,7 +39,7 @@
 
 //#define TOOLINGIN_POWER_TIMEOUT                 15/TOOLINGTIMECYCLE
 
-#define TOOL_MAX_RSSICNT                        15
+#define TOOL_MAX_RSSICNT                        25
 #define TOOL_MIN_RSSI                           -70
 
 ///*****************************************************************************
@@ -162,7 +162,7 @@ void tooling_task(void)
             if(0 == tooling_cnt)
             {
                 //0.25s/0.25闪烁
-                LOG_VERBOSE("tooling burin step1 err!!!\n");
+                LOG_DEBUG("tooling burin step1 err!!!\n");
                 tooling_burnin_data.item.burningFlag = TOOLING_BURNIN_STEP1_ERR;
                 // tool_lightshowpara.flash_first = 1;
                 // tool_lightshowpara.flash_fristtime = 25;
@@ -186,7 +186,7 @@ void tooling_task(void)
             if(0 == tooling_cnt)
             {
                 //set max lightness
-                LOG_VERBOSE("tooling burin step3 start\n");
+                LOG_DEBUG("tooling burin step3 start\n");
                 LightConfig_def LightConfig1 = DEFAULT_LIGHTNESS_CONFIG;
                 LightConfig = LightConfig1;
                 //停止闪烁
@@ -213,7 +213,7 @@ void tooling_task(void)
             //     if((len_res != sizeof(tooling_burnin_t)) || (p_result != WICED_SUCCESS))  
             //     {
             //         //0.25s/0.25s亮灭1次--1.5s/1.5s呼吸2次 一直循环下去
-            //         LOG_VERBOSE("tooling burin step3 write nvram err!!!\n");
+            //         LOG_DEBUG("tooling burin step3 write nvram err!!!\n");
             //         LightFlashAndSniffer(50,1,300,2,0x7FFF);
             //     } 
             //     else
@@ -225,7 +225,7 @@ void tooling_task(void)
             //             .lightnessCTL = 4500,          
             //             .Lightontime  = 0              
             //         };
-            //         LOG_VERBOSE("tooling burin step3 done\n");
+            //         LOG_DEBUG("tooling burin step3 done\n");
             //         LightConfig = LightConfig1;
             //         LightFlash(0,0);
             //     }                           
@@ -270,6 +270,7 @@ uint8_t tooling_burninTest(wiced_bt_ble_scan_results_t *p_scan_result)
             WICED_BT_TRACE("%s %d tooling mac: %B\n", __func__,__LINE__, p_scan_result->remote_bd_addr);
             #endif
             memcpy(tool_mac, p_scan_result->remote_bd_addr,sizeof(wiced_bt_device_address_t));
+            WICED_BT_TRACE("%s %d tooling mac: %B\n", __func__,__LINE__, p_scan_result->remote_bd_addr);
         }
         else
         {
@@ -310,7 +311,7 @@ uint8_t tooling_burninTest(wiced_bt_ble_scan_results_t *p_scan_result)
             rssiNum+=toolrssi[i];
         }
         rssiNum = rssiNum/(TOOL_MAX_RSSICNT-6);
-        LOG_VERBOSE("tooling rssi: %d\n",rssiNum);
+        LOG_DEBUG("tooling rssi: %d\n",rssiNum);
         if(rssiNum >= toolrssiset)  
         {
             return 0xFF;
@@ -357,7 +358,7 @@ void tooling_init(void)
     //     wiced_start_timer(&toolingtimer,1);
     //     //设置闪烁时间
     //     tooling_cnt = 5/TOOLINGTIMECYCLE;
-    //     LOG_VERBOSE("tooling burin step3 continue： runtime = %d min\n", tooling_burnin_data.item.burninMin);
+    //     LOG_DEBUG("tooling burin step3 continue： runtime = %d min\n", tooling_burnin_data.item.burninMin);
     //     //set flash 0.5s/0.5s
     //     LightFlash(100,1000);
     // }
@@ -412,7 +413,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     {
                         wiced_deinit_timer(&toolingtimer);
                     }
-                    LOG_VERBOSE("tooling burn_in start\n");
+                    LOG_DEBUG("tooling burn_in start\n");
                     if(0 == memcmp((uint8_t *)(data+2),productCode+3,sizeof(productCode)-1-3))
                     {
                         toolrssiset = (int8_t)data[1];
@@ -424,17 +425,17 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     }
                     // else
                     // {
-                    //     LOG_VERBOSE("productCode err!!!!\n");
+                    //     LOG_DEBUG("productCode err!!!!\n");
                     //     LightFlash(120,0x7FFF,30,30,0);  //检测code码异常 一直不停的闪烁下去
                     //     tooling_burnin_data.item.burningFlag = TOOLING_BURNIN_STEP1_ERR;
                     // }
                 break;
                 case TOOLING_BURNIN_STEP1:
-                    LOG_VERBOSE("22222......!!!!\n");
+                    LOG_DEBUG("22222......!!!!\n");
                     if(0xFF == tooling_burninTest(p_scan_result))
                     {
                         //set flash 1s/1s
-                        LOG_VERBOSE("tooling burin step1 done\n");
+                        LOG_DEBUG("tooling burin step1 done\n");
                         // if((data[2] > 0) && (data[2] < 145))
                         // {
                         //     uint16_t toolburnintime;
@@ -444,7 +445,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                         // }
                         if(WICED_FALSE == ToolDIDWriteVerify())  //DID写入校验失败
                         {
-                            LOG_VERBOSE("ToolDIDWriteVerify err!!!\n");
+                            LOG_DEBUG("ToolDIDWriteVerify err!!!\n");
                             LightFlash(0,0,30,30,0);
                             tooling_burnin_data.item.burningFlag = TOOLING_BURNIN_STEP1_ERR;
                         }
@@ -457,13 +458,13 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                             //3s亮--1.5s/1.5s呼吸一次 维持1min
                             //LightFlashAndSniffer(300,1,300,1,10);
                             tool_lightshowpara.flash_first = 0;
-                            tool_lightshowpara.flash_fristtime = 300;
-                            tool_lightshowpara.flash_cycle = 300;
+                            tool_lightshowpara.flash_fristtime = 200;
+                            tool_lightshowpara.flash_cycle = 200;
                             tool_lightshowpara.flash_times = 1;
-                            tool_lightshowpara.sniffer_frist = 0;
-                            tool_lightshowpara.sniffercycle = 300;
+                            tool_lightshowpara.sniffer_frist = 0; 
+                            tool_lightshowpara.sniffercycle = 200;
                             tool_lightshowpara.sniffer_times = 1;
-                            tool_lightshowpara.times = 10;    
+                            tool_lightshowpara.times = 15;    
                             LightFlashAndSniffer(tool_lightshowpara);
                             tooling_burnin_data.item.burningFlag = TOOLING_BURNIN_STEP2;
                         }
@@ -479,7 +480,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     {
                         return;
                     }
-                    LOG_VERBOSE("tool burn_after start\n");
+                    LOG_DEBUG("tool burn_after start\n");
                     tooling_cnt = TOOLINGIN_STEP1_TIMEOUT;
                     if(wiced_is_timer_in_use(&toolingtimer))
                     {
@@ -495,7 +496,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     if(0xFF == tooling_burninTest(p_scan_result))
                     {
                         //set sniffer 1s/1s
-                        LOG_VERBOSE("tool burn_after done\n");
+                        LOG_DEBUG("tool burn_after done\n");
                         tooling_cnt = 0;
                         toolafterflag = 2;
                         LightSniffer(300,0x7FFF,0,90,0);
@@ -505,7 +506,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                         //异常提示 快速亮灭0.25/0.25 2次 呼吸1.5s/1.5s 一次 一直循环
                         LightFlash(50,0x7FFF,100,0,0);
                         toolafterflag = 2;
-                        LOG_VERBOSE("tool burn_after rssi pool\n");
+                        LOG_DEBUG("tool burn_after rssi pool\n");
                     }
                     
                     break;
@@ -526,7 +527,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     {
                         wiced_deinit_timer(&toolingtimer);
                     }
-                    LOG_VERBOSE("tool power test start\n");
+                    LOG_DEBUG("tool power test start\n");
                     toolrssiset = (int8_t)data[1];
                     wiced_init_timer(&toolingtimer,ToolingTimerCb,0,WICED_SECONDS_PERIODIC_TIMER);
                     wiced_start_timer(&toolingtimer,TOOLINGTIMECYCLE);
@@ -543,11 +544,11 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                         .lightnessCTL = 4500,          
                         .Lightontime  = 0              
                         };
-                        LOG_VERBOSE("tooling burin step3 done\n");
+                        LOG_DEBUG("tooling burin step3 done\n");
                         LightConfig = LightConfig1;
                         LightFlash(0,0,0,0,0);
                         tooling_cnt = 2/TOOLINGTIMECYCLE;
-                        LOG_VERBOSE("tool power test rssi ok\n");
+                        LOG_DEBUG("tool power test rssi ok\n");
                         toolpowerflag = 2;
                
                     }
@@ -555,7 +556,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     {
                         //异常提示 快速亮灭0.25/0.25 2次 呼吸1.5s/1.5s 一次 一直循环
                         LightFlash(50,0x7FFF,100,0,0);
-                        LOG_VERBOSE("tool power test rssi pool\n");
+                        LOG_DEBUG("tool power test rssi pool\n");
                         toolpowerflag = 4;
                     }
                 break;
@@ -566,7 +567,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                         LightConfig.Lightontime = 0;
                         tooling_cnt = 3/TOOLINGTIMECYCLE;
                         LightFlash(0,0,0,0,0);
-                        LOG_VERBOSE("tool power test lowest power\n");
+                        LOG_DEBUG("tool power test lowest power\n");
                         toolpowerflag = 3;
                     }
                     break;
@@ -575,7 +576,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     {
                         LightConfig.lightingOn = 1;
                         LightSniffer(200,0x7FFF,0,90,0);
-                        LOG_VERBOSE("tool power test sniffer\n");
+                        LOG_DEBUG("tool power test sniffer\n");
                         toolpowerflag = 4;
                     }
                 break;
