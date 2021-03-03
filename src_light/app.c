@@ -188,7 +188,7 @@ void appResetUserSetAlert(void)
 #if (CHECK_POWEROFF_VALUE) && (!CHECK_POWEROFF_INTT)
     wiced_stop_timer(&powerTestTimer);
 #endif
-    LightFlash(120,3,50,0,0);
+    LightFlash(100,3,50,0,0);
     powerOnCnt = configLIGHTRSTCNT;
     flashWriteBlockSave(FLASH_ADDR_CNT, &powerOnCnt, sizeof(powerOnCnt));
     reset_timer_count = 4;
