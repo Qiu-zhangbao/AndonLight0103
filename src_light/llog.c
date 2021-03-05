@@ -6,6 +6,8 @@
 #include "config.h"
 
 
+uint16_t      llogsaveflag = 0;
+
 #if  ANDON_LIGHT_LOG_ENABLE
 #define LOGMAXSIZE   100
 #define LOGINDEX_PLUS(x,y)  ((x+y)%LOGMAXSIZE)
@@ -48,7 +50,6 @@ uint16_t      lognum = 0;
 uint16_t      logindex_in = 0;
 uint16_t      logindex_out = 0;
 
-uint16_t      llogsaveflag = 0;
 
 void llog_initiate(void)
 {

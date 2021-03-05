@@ -847,6 +847,21 @@ static void BrightStateFilter(uint8_t Brightfilter)
     return;    
 }
 
+void bubbleSort(void){
+    for(uint8_t i = 0; i < AutoBrightnessSet.Item.AutoBrightnessNum - 1; i++) {
+        for(uint8_t j = 0; j < AutoBrightnessSet.Item.AutoBrightnessNum - 1 - i; j++) {
+            if(AutoBrightnessSet.Item.AutoBrightnessPoint[j][0] > AutoBrightnessSet.Item.AutoBrightnessPoint[j+1][0]) {        // 相邻元素两两对比
+                uint16_t temp = AutoBrightnessSet.Item.AutoBrightnessPoint[j+1][0];        // 元素交换
+                AutoBrightnessSet.Item.AutoBrightnessPoint[j+1][0] = AutoBrightnessSet.Item.AutoBrightnessPoint[j][0];
+                AutoBrightnessSet.Item.AutoBrightnessPoint[j][0] = temp;
+                temp = AutoBrightnessSet.Item.AutoBrightnessPoint[j+1][1];        // 元素交换
+                AutoBrightnessSet.Item.AutoBrightnessPoint[j+1][1] = AutoBrightnessSet.Item.AutoBrightnessPoint[j][1];
+                AutoBrightnessSet.Item.AutoBrightnessPoint[j][1] = temp;
+            }
+        }
+    }
+}
+
 //lq20200420新增函数
 static void NewmodelPreprocess(void)
 {
@@ -1121,6 +1136,7 @@ uint8_t SetCenter(uint8_t *reply, uint8_t *p_data, uint16_t data_len)
                 reply[dateiptr++] = p_data[dateoptr+3]; 
                 dateoptr += 4;
                 replylen += 4;
+                AutoBrightnessSet.Item.AutoBrightnessSetSave = 1;
             }else if(data_len-dateoptr <  (*(p_data+dateoptr+3)*4+4))   //lq20200618 精度1min时  数据长度异常 不做处理
             {
             }
@@ -1166,6 +1182,8 @@ uint8_t SetCenter(uint8_t *reply, uint8_t *p_data, uint16_t data_len)
                     }
                     if (1 == AutoBrightnessSet.Item.FlagModelOn)
                     {
+                        //排序
+                        bubbleSort();
                         NewmodelPreprocess();
                     } 
                 }       

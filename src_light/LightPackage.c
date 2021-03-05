@@ -1518,7 +1518,7 @@ static packageReply  SetRemoteActionResponse(uint8_t *p_data, uint16_t data_len)
         reply.result = lightpackageOPCODEFAILED;
         return reply;
     }
-    reply.pack_len = p_data[4]*2+4+1;
+    reply.pack_len = _countof(LightActionList)*2+4+1;
     reply.p_data = (uint8_t *)wiced_bt_get_buffer(reply.pack_len);
     if(reply.p_data == NULL){
         reply.pack_len = 0;
@@ -1907,15 +1907,19 @@ static packageReply SetDeivceBind(uint8_t *p_data, uint16_t data_len)
     }
 
     reply1 = AndonServiceSetBind(p_data+4,data_len-4);
-    if(reply1.result != lightpackageSUCCESS) {
-        // reply.result = reply1.result;
-        // return reply;
-        reply1.pack_len = 0;
+    if(reply1.p_data == NULL){
+        reply.result = lightpackageMEMORYFAILED;
+        return reply;
     }else{
-        reply.pack_len = reply1.pack_len+4;
-        reply.p_data = (uint8_t *)wiced_bt_get_buffer(reply.pack_len); 
-        memcpy(reply.p_data+4, reply1.p_data,reply1. pack_len);
-        // WICED_BT_TRACE_ARRAY(reply.p_data,reply.pack_len,"Anond len=%d Binddata: \n",reply.pack_len);
+        if(reply1.result == lightpackageSUCCESS){
+            reply.pack_len = reply1.pack_len+4;
+            reply.p_data = (uint8_t *)wiced_bt_get_buffer(reply.pack_len); 
+            memcpy(reply.p_data+4, reply1.p_data,reply1. pack_len);
+            // WICED_BT_TRACE_ARRAY(reply.p_data,reply.pack_len,"Anond len=%d Binddata: \n",reply.pack_len);
+        }else{
+            reply.result = reply1.result;
+            return reply;
+        }
         wiced_bt_free_buffer(reply1.p_data);
     }
     reply.p_data[0] = 0;

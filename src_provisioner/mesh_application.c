@@ -415,6 +415,11 @@ void mesh_application_start()
     }
     mesh_app_hci_init();
     flash_app_init();
+    // {
+    //     extern void sFlashTest(void);
+    //     sFlashTest();
+    //     return;
+    // }
     
 #ifndef WICEDX_LINUX
     // If application wants to control the hardware, call appropriate initialization function.
@@ -629,6 +634,7 @@ wiced_result_t mesh_management_cback(wiced_bt_management_evt_t event, wiced_bt_m
         if (*p_mode == BTM_BLE_ADVERT_OFF)
         {
             // WICED_BT_TRACE("adv stopped\n");
+            LOG_DEBUG("adv stopped!!!!!!!!!!!!\n");
             // On failed attempt to connect FW stops all connectable adverts. 20719B1 also receives that event in case of successfull connection
             // If we disconnected then notify core to restart them
             if (!mesh_app_gatt_is_connected())

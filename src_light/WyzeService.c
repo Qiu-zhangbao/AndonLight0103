@@ -182,6 +182,8 @@ uint8_t* WyzeServiceSetEncryptKey(uint8_t *indata, uint8_t inlen, uint8_t *outle
 //*****************************************************************************/
 void WyzeServiceSetClientConfiguration(uint16_t client_config)
 {
+    void appUpdataCommpara(void);
+
     wyzeServiceConfigDescriptor = client_config;
     if(storageBindkey.bindflag == WICED_FALSE){
         if(client_config != 0){
@@ -191,6 +193,9 @@ void WyzeServiceSetClientConfiguration(uint16_t client_config)
             LightFlash(0,0,0,0,0);
             LOG_DEBUG("2.......\n");
         }
+    }
+    if(client_config != 0){
+        appUpdataCommpara();
     }
     LOG_DEBUG("wyze_service_config_descriptor changed: %d\n", wyzeServiceConfigDescriptor);
 }

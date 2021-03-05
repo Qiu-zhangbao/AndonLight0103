@@ -263,7 +263,7 @@ static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C020B,356e7b0fcabe0b563c2e7eae5f89ccc
 #else
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0002,08de22895b2bd75c995b3f8d0b96076c";
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C020F,fe0b7ee7430195f836fca7eba65ae0c6";
-static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0218,e4cabc7ee804ab138edc9d5c6d1eb1b4";
+static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C021E,a83effbc2e07fa40789484a5113747a4";
 #endif
 
 // static uint8_t ACC_SN1[] = "CO_TH1_firmware_test,CO_TH1_firmware_test";

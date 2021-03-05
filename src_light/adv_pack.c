@@ -246,6 +246,7 @@ wiced_bt_ble_multi_adv_params_t adv_manudevadv_params =
     .channel_map = BTM_BLE_DEFAULT_ADVERT_CHNL_MAP,                                         /**< Adv channel map */
     .adv_filter_policy = BTM_BLE_ADVERT_FILTER_WHITELIST_CONNECTION_REQ_WHITELIST_SCAN_REQ, /**< Advertising filter policy */
     .adv_tx_power = MULTI_ADV_TX_POWER_MAX,                                                 /**< Adv tx power */
+    // .adv_tx_power = -4,                                                                     /**< Adv tx power */
     .peer_bd_addr = {0},                                                                    /**< Peer Device address */
     .peer_addr_type = BLE_ADDR_RANDOM,                                                      /**< Peer LE Address type */
     .own_bd_addr = {0},                                                                     /**< Own LE address */
@@ -408,6 +409,7 @@ static void mesh_pair_timer_callback(uint32_t arg)
 
 void adv_manuDevAdvStop(void)
 {
+    LOG_DEBUG("stop nonconnect adv.......\n");
     wiced_start_multi_advertisements(MULTI_ADVERT_STOP, ADV_MANUDEVADV_INDEX);
 }
 
@@ -693,13 +695,11 @@ wiced_bool_t adv_recevier_handle(wiced_bt_ble_scan_results_t *p_scan_result, uin
     }
     wiced_bt_dev_read_local_addr(own_bd_addr);
     //receiver own message
-    if (0 == memcmp(adv_data.item.remote_mac, own_bd_addr, sizeof(wiced_bt_device_address_t)))
-    {
+    if (0 == memcmp(adv_data.item.remote_mac, own_bd_addr, sizeof(wiced_bt_device_address_t))){
         return WICED_TRUE;
     }
     
-    if(WICED_FALSE == appendAdvCmdRpl(adv_data.item.remote_mac,adv_data.item.seq))
-    {
+    if(WICED_FALSE == appendAdvCmdRpl(adv_data.item.remote_mac,adv_data.item.seq)){
         return WICED_TRUE;
     }
 

@@ -12,6 +12,7 @@
 #include "wiced_bt_mesh_provision.h"
 
 #include "wiced_bt_beacon.h"
+#include "wiced_bt_l2c.h"
 
 #include "wiced_hal_cpu_clk.h"
 
@@ -79,6 +80,8 @@ static void mesh_vendor_server_process_get(wiced_bt_mesh_event_t *p_event, uint8
 static void mesh_vendor_server_process_data(wiced_bt_mesh_event_t *p_event, uint8_t *p_data, uint16_t data_len);
 wiced_bool_t mesh_vendor_message_handler(wiced_bt_mesh_event_t *p_event, uint8_t *p_data, uint16_t data_len);
 
+void readTxPowerCallback(void *pdata);
+
 void reset_process(void);
 
 static void pre_initial(void);
@@ -141,7 +144,7 @@ void appResetUserSet(void)
 {
 
 #include "wiced_hidd_lib.h"
-
+    extern void mesh_app_gatt_is_disconnected(void);
     extern wiced_bool_t clear_flash_for_reset(wiced_bt_mesh_core_config_t *p_config_data,wiced_bt_core_nvram_access_t nvram_access_callback);
     extern void wdog_generate_hw_reset(void);
     extern uint32_t mesh_nvram_access(wiced_bool_t write, int inx, uint8_t* node_info, uint16_t len, wiced_result_t *p_result);
@@ -159,6 +162,7 @@ void appResetUserSet(void)
         return;
     }
 
+    mesh_app_gatt_is_disconnected();
     wiced_deinit_timer(&reset_timer);
     //发送设置重置通知
     mesh_reset_timer_cb = NULL;
@@ -426,12 +430,19 @@ void appStartDevAdv(void)
     adv_manuDevAdvStart(devdata,devdata[0]+1);
 }
 
-void appBleConnectNotify(wiced_bool_t isconneted)
+wiced_bt_device_address_t remoteaddr;
+
+void appUpdataCommpara(void){
+    wiced_bt_l2cap_update_ble_conn_params(remoteaddr, 36, 48, 0, 200);
+}
+
+void appBleConnectNotify(wiced_bool_t isconneted,wiced_bt_device_address_t addr)
 {
     if(isconneted == WICED_FALSE)
     {
         // appStartDevAdv();
         adv_manuDevAdvStop();
+        memset(remoteaddr,0,sizeof(wiced_bt_device_address_t));
         #ifdef DEF_ANDON_GATT
             //断开GATT连接，关闭Andon服务通知
             AndonServiceGattDisConnect();
@@ -444,6 +455,7 @@ void appBleConnectNotify(wiced_bool_t isconneted)
         //     lightModelTurn(1,0,0);
         // }
         appStartDevAdv();
+        memcpy(remoteaddr,addr,sizeof(wiced_bt_device_address_t));
         // adv_manuDevAdvStop();
     }
     
@@ -555,6 +567,14 @@ void reset_process(void)
     mesh_reset_timer_cb = reset_timer_callback;
 }
 
+void readTxPowerCallback(void *pdata)
+{
+    wiced_bt_tx_power_result_t *power;
+
+    power = pdata;
+    LOG_DEBUG("Ble TX Power %d  3.............\n",power->tx_power);
+}
+
 void mesh_node_app_init(wiced_bool_t is_provisioned)
 {
     extern int  mesh_core_version_info();
@@ -615,8 +635,6 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
     // flash_app_read_mem(FLASH_ADDR_CONFIG, (uint8_t *)&pre_load_cfg, sizeof(pre_load_cfg));
     // LOG_VERBOSE("LOAD: %d %d\n", pre_load_cfg.lightnessLevel, pre_load_cfg.lightnessCTL);
 
-    // wiced_bt_ble_read_adv_tx_power(read_tx_power_cb);
-
     int8_t i;
     wiced_result_t ret;
     //uint16_t bts = wiced_hal_read_nvram(0x220, sizeof(i), &i, &ret);
@@ -630,8 +648,10 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
     // }
 
     LOG_DEBUG("TX Power %d\n", wiced_bt_mesh_core_adv_tx_power);
-    // LOG_DEBUG("Ble TX Power %d\n", wiced_bt_ble_read_adv_tx_power());
-
+    // wiced_bt_dev_set_adv_tx_power(-10);
+    // // LOG_DEBUG("Ble TX Power %d\n", wiced_bt_ble_read_adv_tx_power());
+    // wiced_bt_ble_read_adv_tx_power(readTxPowerCallback);
+    
     reset_process();
 
     #if ANDON_TEST
@@ -815,6 +835,7 @@ wiced_bool_t appAndonBleConnectUsed(void)
 
 			if(LightConfig.bleonly == CONFIG_BLEONLY)
             {
+                // wiced_bt_dev_set_adv_tx_power(4);
 				mesh_node_app_init(WICED_FALSE);
 			}
         }

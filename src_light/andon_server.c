@@ -179,7 +179,12 @@ wiced_bool_t AndonGattSendNotification (uint16_t conn_id, uint16_t val_len, uint
 //*****************************************************************************/
 void AndonServiceSetClientConfiguration(uint16_t client_config)
 {
+    void appUpdataCommpara(void);
+
     andonServiceConfigDescriptor = client_config;
+    if(client_config){
+        appUpdataCommpara();
+    }
     LOG_DEBUG("customer_service_config_descriptor changed: %d\n", andonServiceConfigDescriptor);
 }
 
@@ -295,13 +300,13 @@ wiced_bt_gatt_status_t AndonServerHandle(uint16_t conn_id, wiced_bt_gatt_write_t
         //数据解析
         replyAck = lightpackUnpackMsgNoEncrypt(userData,userDataLen);
         wiced_bt_free_buffer(userData);
-        if(replyAck.result == lightpackageSUCCESS) 
+        if(replyAck.p_data != NULL)
         {
-            if(replyAck.p_data != NULL)
+            if(replyAck.result == lightpackageSUCCESS) 
             {
                 AndonGattSendNotification(conn_id, replyAck.pack_len, replyAck.p_data, WICED_FALSE);
-                wiced_bt_free_buffer(replyAck.p_data);
             }
+            wiced_bt_free_buffer(replyAck.p_data);
         }
         return WICED_BT_GATT_SUCCESS;
 

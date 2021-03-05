@@ -19,8 +19,8 @@
 #include "pwm_control.h"
 
 #define USE_STANDARD_MODEL                 (0)
-#define MESH_DFU                           (1)
-#define ANDON_LIGHT_LOG_ENABLE             (1)
+#define MESH_DFU                           (0)
+#define ANDON_LIGHT_LOG_ENABLE             (0)
 
 /**
  * \brief Mesh Light Lightness Server Device.
@@ -45,15 +45,15 @@
 #define PRODUCT_CODE            "JA_SL10"
 // #define PRODUCT_CODE            "CO_TH1"
 
-#define ANDON_HW_MAJOR          0         //0--9
+#define ANDON_HW_MAJOR          1         //0--9
 #define ANDON_HW_MINOR          0         //0--9
-#define ANDON_HW_PATCH          1        //0--127
+#define ANDON_HW_PATCH          0         //0--127
 #define MESH_VID                ((ANDON_HW_MAJOR<<12)&0xF000 | (ANDON_HW_MINOR<<8)&0x0F00 | ANDON_HW_PATCH&0xFF)
 // #define MESH_VID      (0x0101)
 
 #define ANDON_FW_MAJOR          0         //0--9
 #define ANDON_FW_MINOR          1         //0--9
-#define ANDON_FW_PATCH          0x4        //0--127
+#define ANDON_FW_PATCH          0x5        //0--127
 #define VERSION                 ((ANDON_FW_MAJOR<<12)&0xF000 | (ANDON_FW_MINOR<<8)&0x0F00 | ANDON_FW_PATCH&0xFF)
 //#define MESH_FWID 0x3008000101010001
 // #define VERSION       (0x0005)

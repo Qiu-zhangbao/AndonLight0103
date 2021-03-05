@@ -12,11 +12,12 @@ typedef struct
 } transition_time_t;
 
 
-
 typedef struct
 {
-    uint8_t onoff;          //目标状态
-    uint16_t remaintime;    //剩余时间,为0表示为处于倒计时过程
+    uint8_t onoff;                                         //目标状态
+    uint8_t flag;                                          //运行状态，DELAYRUNING  DELAYSTOP
+    uint16_t settime;                                      //剩余时间,为0表示为处于倒计时过程
+    uint16_t remaintime;                                   //剩余时间,为0表示为处于倒计时过程
 } TurnOnOffDelay_t;
 
 typedef struct 
@@ -54,7 +55,6 @@ extern void LightUpdate(void);
 extern void LightModelInitial(uint8_t onoff);
 extern void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t finalbrightness,uint8_t);
 extern void LightSniffer(uint16_t cycle, uint16_t times, uint8_t direction,uint8_t finalbrightness,uint8_t);
-extern void LightSniffer1(uint16_t cycle, uint16_t times, uint8_t direction,uint8_t final, uint8_t issaved);
 extern void LightModelToggleForPowerOff(uint8_t transitiontime, uint16_t delay, uint16_t Powerstata);
 // extern void LightFlashAndSniffer(uint16_t flashcycle, uint16_t times1, uint16_t sniffercycle,uint16_t times2, uint16_t times);
 extern void LightFlashAndSniffer(Light_FlashAndSniffer_t);

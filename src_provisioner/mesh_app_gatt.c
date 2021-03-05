@@ -580,6 +580,9 @@ wiced_bt_gatt_status_t mesh_ota_firmware_upgrade_send_data_callback(wiced_bool_t
         uint16_t outlen;
 
         encryptarray = AndonServiceUpgradeEncrypt(p_val,val_len,&outlen);
+        if(encryptarray == NULL){
+            return WICED_BT_GATT_NO_RESOURCES;
+        }
         if(outlen > 128)
         {
             wiced_bt_free_buffer(encryptarray);
@@ -918,7 +921,7 @@ wiced_bt_gatt_status_t mesh_gatts_callback(wiced_bt_gatt_evt_t event, wiced_bt_g
         // Otherwise, we are a provisioner and we established connection to a new device or to a proxy device
         if (p_data->connection_status.link_role == HCI_ROLE_SLAVE)
         {
-            void appBleConnectNotify(wiced_bool_t isconneted);
+            void appBleConnectNotify(wiced_bool_t isconneted, wiced_bt_device_address_t addr);
             if (wiced_bt_mesh_app_func_table.p_mesh_app_gatt_conn_status)
             {
                 wiced_bt_mesh_app_func_table.p_mesh_app_gatt_conn_status(&p_data->connection_status);
@@ -935,7 +938,7 @@ wiced_bt_gatt_status_t mesh_gatts_callback(wiced_bt_gatt_evt_t event, wiced_bt_g
                 // Otherwise don't change MTU
                 if(conn_mtu == 0)
                     conn_mtu = 23;
-                appBleConnectNotify(WICED_TRUE);   
+                appBleConnectNotify(WICED_TRUE,p_data->connection_status.bd_addr);   
                 for(uint8_t i =0; i<sizeof(gattconnpara)/sizeof(gattconnpara[0]);i++){
                     if((gattconnpara[i].conn_id) && (gattconnpara[i].conn_id != conn_id)){
                         continue;
@@ -944,7 +947,7 @@ wiced_bt_gatt_status_t mesh_gatts_callback(wiced_bt_gatt_evt_t event, wiced_bt_g
                     gattconnpara[i].conn_mtu = conn_mtu;
                     memcpy(gattconnpara[i].remaddr,p_data->connection_status.bd_addr,sizeof(wiced_bt_device_address_t));
                 } 
-                wiced_bt_l2cap_update_ble_conn_params(p_data->connection_status.bd_addr, 36, 48, 0, 200);
+                // wiced_bt_l2cap_update_ble_conn_params(p_data->connection_status.bd_addr, 30, 48, 0, 200);
                 // wiced_bt_l2cap_update_ble_conn_params(p_data->connection_status.bd_addr, 60, 96, 0, 400);
                 // We will call mesh_core's wiced_bt_mesh_core_connection_status() on notification enable (write 0x0001 to HANDLE_DESCR_MESH_PROXY_DATA_CLIENT_CONFIG)
             }
@@ -960,7 +963,7 @@ wiced_bt_gatt_status_t mesh_gatts_callback(wiced_bt_gatt_evt_t event, wiced_bt_g
                 } 
                 conn_id = 0;
                 conn_mtu = 0;
-				appBleConnectNotify(WICED_FALSE);  
+				appBleConnectNotify(WICED_FALSE,p_data->connection_status.bd_addr);  
                 appAndonBleConnectUsed();
                 // On disconnect ref_data is disconnection reason.
                 wiced_bt_mesh_core_connection_status(0, WICED_FALSE, p_data->connection_status.reason, 20);
