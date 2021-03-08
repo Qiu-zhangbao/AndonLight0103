@@ -16,6 +16,7 @@
 #endif
 
 #define lightSTARTTRANSIONTIME   (1<<0)
+#define lightSTARTTCOUNTDOWN     (1<<1)
 
 #define lightCANCLETRANSIONTIME  (1<<0)
 #define lightCANCLECOUNTDOWN     (1<<1)
@@ -1925,7 +1926,7 @@ void lightStartAction(uint32_t startAction){
     LOG_DEBUG("startAction %04x",startAction);
     if(startAction&lightSTARTTRANSIONTIME){
         LightModelToggle(0,0,0xFF);
-    }else if(startAction&lightSTARTTRANSIONTIME){
+    }else if(startAction&lightSTARTTCOUNTDOWN){
         //已经处于倒计时过程中
         if(TurnOnOffDelay.flag != TURNONOFFDELAYSTOP){
             return;
