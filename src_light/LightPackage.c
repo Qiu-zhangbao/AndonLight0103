@@ -747,13 +747,7 @@ static packageReply  SetCountDownTimer(uint8_t *p_data, uint16_t data_len)
     reply.p_data[1] = p_data[1];
     reply.p_data[2] = (p_data[2]|0x80);
     reply.p_data[3] = p_data[3];
-    // reply.p_data[4] = p_data[4];
-    // reply.p_data[5] = p_data[5];
-    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,reply.p_data+9,&remaintime);
-    if(p_data[4] == 2)
-    {
-        reply.p_data[4] = 2;
-    }
+    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,&remaintime,reply.p_data+9);
     reply.p_data[5] = (delaytime>>8)&0xff;
     reply.p_data[6] =  delaytime&0xff;
     reply.p_data[7] = (remaintime>>8)&0xff;
@@ -788,7 +782,7 @@ static packageReply  GetCountDownTimer(uint8_t *p_data, uint16_t data_len)
         return reply;
     }
     //获取当前延时开关灯状态
-    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,reply.p_data+9,&remaintime);
+    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,&remaintime,reply.p_data+9);
     reply.p_data[0] = 0;
     reply.p_data[1] = p_data[1];
     reply.p_data[2] = (p_data[2]|0x80);

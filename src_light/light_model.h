@@ -32,6 +32,17 @@ typedef struct
     uint16_t times;                                         //总的循环次数
 }Light_FlashAndSniffer_t;
 
+typedef struct 
+{
+    uint16_t cycle;                                      //单个循环时间
+    uint16_t times;                                      //循环时间
+    uint8_t direction;                                   //方向，是先变暗还是先变亮
+    uint16_t final;                                       //最终的亮度值
+    uint8_t issaved;                                     //是否保持最终亮度
+    uint16_t minlevel;                                    //呼吸时最低亮度
+    uint16_t maxlevel;                                    //呼吸时最大亮度 
+}Light_Sniffer1_t;
+
 extern LightConfig_def currentCfg;
 
 #define LIGHT_ON 1
@@ -44,7 +55,7 @@ extern LightConfig_def LightConfig;
 typedef int32_t (*Animination)(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 
 void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime);
-void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *delaytime, uint8_t *lightness ,uint16_t *remaintime);
+void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *delaytime, uint16_t*, uint8_t *lightness);
 void lightGetStatus(uint8_t *current, uint8_t *targe, uint16_t *transtime);
 void lightCancleAction(uint32_t);
 void lightStartAction(uint32_t);
@@ -55,6 +66,7 @@ extern void LightUpdate(void);
 extern void LightModelInitial(uint8_t onoff);
 extern void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t finalbrightness,uint8_t);
 extern void LightSniffer(uint16_t cycle, uint16_t times, uint8_t direction,uint8_t finalbrightness,uint8_t);
+extern void LightSniffer1(Light_Sniffer1_t snifferinfo );
 extern void LightModelToggleForPowerOff(uint8_t transitiontime, uint16_t delay, uint16_t Powerstata);
 // extern void LightFlashAndSniffer(uint16_t flashcycle, uint16_t times1, uint16_t sniffercycle,uint16_t times2, uint16_t times);
 extern void LightFlashAndSniffer(Light_FlashAndSniffer_t);

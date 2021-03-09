@@ -94,10 +94,10 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
     wiced_bool_t mesh_app_node_is_provisioned(void);
 
     //lq20200618 -最近模型时间段内的亮度----
-    uint16_t distmp1, distmp2;       
-    uint8_t postmp1, postmp2;
-    uint8_t j;
-    uint8_t autolightnesspercent;  //zhw 20200828 
+    uint16_t distmp1=0, distmp2=0;       
+    uint8_t postmp1=255, postmp2=255;
+    uint8_t j=0;
+    uint8_t autolightnesspercent=0;  //zhw 20200828 
     //-------------------
 
     autolightnesspercent = 0;    //zhw 20200828 
@@ -191,8 +191,10 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
                 }
                 j++;
             }
-            distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
-            distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);   
+            if((postmp1<AutoBrightnessSet.Item.AutoBrightnessNum)&&(postmp2<AutoBrightnessSet.Item.AutoBrightnessNum)){
+                distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
+                distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);   
+            }
 
             //zhw 20200828 start         
             // if(distmp1 <= distmp2)
@@ -296,8 +298,10 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
                     }
                     j++;
                 }
-                distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
-                distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);
+                if((postmp1<AutoBrightnessSet.Item.AutoBrightnessNum)&&(postmp2<AutoBrightnessSet.Item.AutoBrightnessNum)){
+                    distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
+                    distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);
+                }
 
                 //zhw 20200828 start         
                 // if(distmp1 <= distmp2)

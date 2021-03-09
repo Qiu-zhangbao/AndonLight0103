@@ -393,6 +393,7 @@ void ligntModelAppTimerCb(void)
     if(TurnOnOffDelay.flag == TURNONOFFDELAYRUNING){
         if(TurnOnOffDelay.remaintime){
             TurnOnOffDelay.remaintime--;
+            LOG_DEBUG("delay remaintime %d\n",TurnOnOffDelay.remaintime);
             if(0 == TurnOnOffDelay.remaintime){
                 if(TurnOnOffDelay.onoff < 2){
                     LightModelTurn(TurnOnOffDelay.onoff,0x0,0);
@@ -449,9 +450,10 @@ void ligntModelAppTimerCb(void)
                         lighttimeraienable = WICED_TRUE;
                     }else{
                         lighttimeraienable = WICED_FALSE;
-                        if((lightAutoOnOffTimer.timerList[i].brightness)&&(lightAutoOnOffTimer.timerList[i].onoffset)){
-                            LightConfig.lightnessLevel = lightAutoOnOffTimer.timerList[i].brightness;
-                        }
+                    }
+                    if((lightAutoOnOffTimer.timerList[i].brightness)&&(lightAutoOnOffTimer.timerList[i].onoffset)){
+                        lighttimeraienable = WICED_FALSE;
+                        LightConfig.lightnessLevel = lightAutoOnOffTimer.timerList[i].brightness;
                     }
                     //当前灯的开关状态和定时设置的开关状态相同，不响应定时器
                     if(currentCfg.lightingOn != lightAutoOnOffTimer.timerList[i].onoffset){
@@ -1712,7 +1714,6 @@ int32_t ActionDelayFlash_procedure(int32_t tick, int32_t period, int32_t initiat
     return 0;
 }
 
-
 void LightModeActionDelayFlash(void)
 {
     // if (wiced_is_timer_in_use(&transitionTimer))
@@ -1735,7 +1736,17 @@ void LightModeActionDelayFlash(void)
     // ctx.final = 0;
     // ctx.PreLightnessLevel = LightConfig.lightnessLevel;
     // wiced_start_timer(&transitionTimer, LIGHT_TIMER_CB_LENGTH);
-    LightFlash(100, 1,70, uint16_to_percentage(LightConfig.lightnessLevel),0);
+    Light_Sniffer1_t snifferinfo;
+    snifferinfo.cycle = 100;
+    snifferinfo.times = 1;
+    snifferinfo.direction = 0;
+    snifferinfo.maxlevel = snifferinfo.final = uint16_to_percentage(currentCfg.lightnessLevel);
+    snifferinfo.issaved = 0;
+    snifferinfo.minlevel = (snifferinfo.final+5)*6/10; 
+    if(snifferinfo.minlevel < 1){
+        snifferinfo.minlevel = 1;
+    }
+    LightSniffer1(snifferinfo);
 }
 
 void LightModelTurnToggle(int8_t res, uint8_t transitiontime, uint16_t delay)
@@ -1750,9 +1761,16 @@ void LightModelTurnOff(int8_t res,uint8_t transitiontime, uint16_t delay)
 {
     LightModelTurn(0,0,delay);
 }
-void LightModelTurnOffDelay(int8_t reserved, uint8_t transitiontime, uint16_t delay)
-{
 
+void LightModelTurnOffDelay(int8_t res,uint8_t transitiontime, uint16_t delay)
+{
+    LOG_DEBUG("LightModelTurnOffDelay........ offdelaytime %d\n",LightConfig.offdelaytime);
+    if(LightConfig.offdelayset == 0) {
+        return;
+    }
+    advRestartPair();
+    TurnOnOffDelay.onoff = !currentCfg.lightingOn;
+    LightModelToggle(0,transitiontime,0xFF);
 }
 
 void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)
@@ -1778,19 +1796,19 @@ void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)
     LOG_DEBUG("Turn %d delay %d\n",TurnOnOffDelay.onoff,TurnOnOffDelay.settime);
 }
 
-void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *delaytime, uint8_t *lightness ,uint16_t *remaintime)
+void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *settime, uint16_t *remaintime, uint8_t *lightness)
 {
-    *delaytime = TurnOnOffDelay.settime;
+    *settime = TurnOnOffDelay.remaintime;
     *lightness = LightConfig.lightingOn?uint16_to_percentage(LightConfig.lightnessLevel):0;
     if(TurnOnOffDelay.flag == TURNONOFFDELAYSTOP){
         TurnOnOffDelay.remaintime == 0;
     }
+    *remaintime = TurnOnOffDelay.remaintime;
     if(TurnOnOffDelay.remaintime == 0){
         *onoff = 3;
     }else{
         *onoff = TurnOnOffDelay.onoff;
     }
-    *remaintime = TurnOnOffDelay.remaintime;
     LOG_DEBUG("Turn %d delay %d\n",TurnOnOffDelay.onoff,TurnOnOffDelay.remaintime);
 }
 
@@ -2032,8 +2050,8 @@ void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t 
     }
     morsecodedisplay = WICED_FALSE;
 
-    // TurnOnOffDelay.remaintime = 0;
-    // TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
+    TurnOnOffDelay.remaintime = 0;
+    TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     
     flashing_cycle = cycle/LIGHT_TIMER_UINT;
     if(flashing_cycle < 2)
@@ -2116,10 +2134,165 @@ void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t 
             // StoreConfig(); 
         }
     }
-    
-    
 }
 
+Light_Sniffer1_t sniffer1set;
+
+int32_t light_sniffer1(int32_t tick, int32_t period, int32_t initiate, int32_t final)
+{
+    currentCfg.lightingOn = 1;
+    if ((tick % sniffer_cycle) <  sniffer_cycle / 2)
+    {
+        if(sniffer_direction)
+        {
+            currentCfg.lightnessLevel = liner_transfer(tick%(sniffer_cycle/2)+1, sniffer_cycle/2, sniffer1set.minlevel, sniffer1set.maxlevel);
+        }
+        else
+        {
+            currentCfg.lightnessLevel = liner_transfer(tick%(sniffer_cycle/2)+1, sniffer_cycle/2, sniffer1set.maxlevel, sniffer1set.minlevel);
+        }
+    }
+    else
+    {
+        if(sniffer_direction)
+        {
+            currentCfg.lightnessLevel = liner_transfer(tick%(sniffer_cycle/2)+1, sniffer_cycle/2, sniffer1set.maxlevel, sniffer1set.minlevel);
+        }
+        else
+        {
+            currentCfg.lightnessLevel = liner_transfer(tick%(sniffer_cycle/2)+1, sniffer_cycle/2, sniffer1set.minlevel, sniffer1set.maxlevel);
+        }
+        
+    }
+    if(tick >= (period-sniffer_cycle))
+    {
+        if(sniffer1set.direction == 1)
+        {
+            if(final == 0)
+            {
+                //LightConfig.lightingOn = currentCfg.lightingOn = 0;
+                currentCfg.lightingOn = 0;
+                ctx.tick  = ctx.period; 
+            }
+            else if(final <= currentCfg.lightnessLevel )
+            {
+                //LightConfig.lightingOn = 1;
+                ctx.tick  = ctx.period;
+                //LightConfig.lightnessLevel = ctx.final;
+            }
+        }
+        else
+        {
+            if((final == 0) && (currentCfg.lightnessLevel < 657))
+            {
+                //LightConfig.lightingOn = currentCfg.lightingOn = 0;
+                currentCfg.lightingOn = 0;
+                ctx.tick  = ctx.period; 
+            }
+            else if(final >= currentCfg.lightnessLevel )
+            {
+                //LightConfig.lightingOn = 1;
+                ctx.tick  = ctx.period;
+                //LightConfig.lightnessLevel = ctx.final;
+            }
+        }
+        LOG_DEBUG("lightnessLevel :%d\n",currentCfg.lightnessLevel);
+        if(ctx.tick  == ctx.period)
+        {
+            llogsaveflag = 1;
+            StoreConfig();
+            memset(&ctx, 0, sizeof(ctx));
+        }
+    }
+    LightUpdate();
+    if(period / sniffer_cycle > 0x7EFF)
+    {
+        ctx.tick = ctx.tick % sniffer_cycle + sniffer_cycle;
+    }
+    return 0;
+}
+
+void LightSniffer1(Light_Sniffer1_t snifferinfo )
+{
+    if(wiced_is_timer_in_use(&morsecodeTimer)){
+        wiced_stop_timer(&morsecodeTimer);
+    }
+    morsecodedisplay = WICED_FALSE;
+    sniffer1set = snifferinfo;
+    if(sniffer1set.maxlevel > 100){
+        sniffer1set.maxlevel = 100;
+    }
+    if(sniffer1set.maxlevel<1){
+        sniffer1set.maxlevel = 1;
+    }
+    if(sniffer1set.minlevel > sniffer1set.maxlevel){
+        sniffer1set.minlevel = sniffer1set.maxlevel-1; 
+    }
+    if(sniffer1set.final > sniffer1set.maxlevel){
+        sniffer1set.final = sniffer1set.maxlevel;
+    }else if(sniffer1set.final < sniffer1set.minlevel){
+        sniffer1set.final = sniffer1set.minlevel;
+    }
+    // TurnOnOffDelay.remaintime = 0;
+    // TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
+
+    sniffer_cycle = sniffer1set.cycle/LIGHT_TIMER_UINT;
+    sniffer1set.maxlevel = percentage_to_uint16(sniffer1set.maxlevel);
+    sniffer1set.minlevel = percentage_to_uint16(sniffer1set.minlevel);
+
+    //sniffer_times = times;
+    if(sniffer_cycle < 2)
+    {
+        sniffer_cycle = 2;
+    }
+    ctx.PrePowerTick = 0xFFFF;
+
+    if (sniffer1set.times)
+    {
+        if (wiced_is_timer_in_use(&transitionTimer))
+        {
+            wiced_stop_timer(&transitionTimer);
+            //wiced_deinit_timer(&transitionTimer);
+        }
+        currentCfg.lightnessLevel = LightConfig.lightnessLevel;
+        ctx.anim = light_sniffer1;
+        ctx.tick = 1;
+        ctx.period = sniffer_cycle * (sniffer1set.times+1);
+        ctx.initiate = LightConfig.lightingOn;
+        ctx.final = percentage_to_uint16(sniffer1set.final);
+        // LightConfig.lightingOn = 1;
+        // if(ctx.final)
+        // {
+        //     LightConfig.lightnessLevel = ctx.final;
+        // }
+        // else
+        // {
+        //     LightConfig.lightingOn = 0;
+        // }
+        LOG_VERBOSE("TransitionTimer Init \n");
+
+        //wiced_init_timer(&transitionTimer, lightModelCb, 0, WICED_MILLI_SECONDS_PERIODIC_TIMER);
+        wiced_start_timer(&transitionTimer, LIGHT_TIMER_CB_LENGTH);
+    }
+    else  //呼吸时循环次数不能为0，为0直接将灯亮度置为之前保存的亮度后返回
+    {
+        memset(&ctx, 0, sizeof(ctx));
+        currentCfg = LightConfig;
+        
+        LOG_VERBOSE("LightSniffer Deinit \n");
+        LightUpdate();
+        return;
+    }
+    if(snifferinfo.issaved)
+    {
+        if((ctx.final == 0) || (ctx.final < 657)){
+            LightConfig.lightingOn = 0;
+        }else{
+            LightConfig.lightingOn = 1;
+            LightConfig.lightnessLevel = ctx.final;
+        }
+    }
+}
 
 int32_t light_sniffer(int32_t tick, int32_t period, int32_t initiate, int32_t final)
 {

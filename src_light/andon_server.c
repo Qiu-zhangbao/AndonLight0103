@@ -236,32 +236,32 @@ wiced_bt_gatt_status_t AndonServerHandle(uint16_t conn_id, wiced_bt_gatt_write_t
     
     if(p_data->p_val[0] == 0xFF)  //测试数据，直接返回
     {
-        // if(andonServiceConfigDescriptor & GATT_CLIENT_CONFIG_NOTIFICATION){
-        //         wiced_bt_gatt_send_notification(conn_id, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, p_data->val_len, p_data->p_val);
-        // }else if(andonServiceConfigDescriptor & GATT_CLIENT_CONFIG_INDICATION){
-        //         wiced_bt_gatt_send_indication(conn_id, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, p_data->val_len, p_data->p_val);
+        if(andonServiceConfigDescriptor & GATT_CLIENT_CONFIG_NOTIFICATION){
+                wiced_bt_gatt_send_notification(conn_id, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, p_data->val_len, p_data->p_val);
+        }else if(andonServiceConfigDescriptor & GATT_CLIENT_CONFIG_INDICATION){
+                wiced_bt_gatt_send_indication(conn_id, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, p_data->val_len, p_data->p_val);
+        }
+        // userDataLen = p_data->val_len - 5;
+        // userData = NULL;
+        // userData = (uint8_t *)wiced_bt_get_buffer(userDataLen);
+        // if(userData == NULL)
+        // {
+        //     return WICED_BT_GATT_SUCCESS;
         // }
-        userDataLen = p_data->val_len - 5;
-        userData = NULL;
-        userData = (uint8_t *)wiced_bt_get_buffer(userDataLen);
-        if(userData == NULL)
-        {
-            return WICED_BT_GATT_SUCCESS;
-        }
-        memcpy(userData,p_data->p_val + 5,userDataLen);
-        WICED_BT_TRACE_ARRAY(userData,userDataLen,"test gatt data: ");
-        replyAck = lightpackUnpackMsg(userData,userDataLen);
-        if(replyAck.p_data != NULL)
-        {
-            if(replyAck.result == lightpackageSUCCESS)
-            {
-                //AndonGattSendNotification(conn_id, replyAck.pack_len, replyAck.p_data, WICED_TRUE);
-                wiced_bt_gatt_send_indication(conn_id, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, replyAck.pack_len, replyAck.p_data);
-            }
-            wiced_bt_free_buffer(replyAck.p_data);
-        }
+        // memcpy(userData,p_data->p_val + 5,userDataLen);
+        // WICED_BT_TRACE_ARRAY(userData,userDataLen,"test gatt data: ");
+        // replyAck = lightpackUnpackMsg(userData,userDataLen);
+        // if(replyAck.p_data != NULL)
+        // {
+        //     if(replyAck.result == lightpackageSUCCESS)
+        //     {
+        //         //AndonGattSendNotification(conn_id, replyAck.pack_len, replyAck.p_data, WICED_TRUE);
+        //         wiced_bt_gatt_send_indication(conn_id, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, replyAck.pack_len, replyAck.p_data);
+        //     }
+        //     wiced_bt_free_buffer(replyAck.p_data);
+        // }
 
-        wiced_bt_free_buffer(userData);
+        // wiced_bt_free_buffer(userData);
 
         return WICED_BT_GATT_SUCCESS;
     }
