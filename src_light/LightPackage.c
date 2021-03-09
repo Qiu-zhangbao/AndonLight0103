@@ -723,6 +723,7 @@ static packageReply  SetCountDownTimer(uint8_t *p_data, uint16_t data_len)
 {
     packageReply reply;
     uint16_t delaytime;
+    uint16_t remaintime;
     
     reply.p_data = NULL;
     reply.pack_len = 0;
@@ -731,7 +732,7 @@ static packageReply  SetCountDownTimer(uint8_t *p_data, uint16_t data_len)
         reply.result = lightpackageOPCODEFAILED;
         return reply;
     }
-    reply.p_data = (uint8_t *)wiced_bt_get_buffer(8);
+    reply.p_data = (uint8_t *)wiced_bt_get_buffer(10);
     if(reply.p_data == NULL)
     {
         reply.result = lightpackageMEMORYFAILED;
@@ -748,14 +749,16 @@ static packageReply  SetCountDownTimer(uint8_t *p_data, uint16_t data_len)
     reply.p_data[3] = p_data[3];
     // reply.p_data[4] = p_data[4];
     // reply.p_data[5] = p_data[5];
-    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,reply.p_data+7);
+    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,reply.p_data+9,&remaintime);
     if(p_data[4] == 2)
     {
         reply.p_data[4] = 2;
     }
     reply.p_data[5] = (delaytime>>8)&0xff;
     reply.p_data[6] =  delaytime&0xff;
-    reply.pack_len = 8;
+    reply.p_data[7] = (remaintime>>8)&0xff;
+    reply.p_data[8] =  remaintime&0xff;
+    reply.pack_len = 10;
     reply.result = lightpackageSUCCESS;
     return reply;
 }
@@ -769,6 +772,7 @@ static packageReply  GetCountDownTimer(uint8_t *p_data, uint16_t data_len)
 {
     packageReply reply;
     uint16_t delaytime;
+    uint16_t remaintime;
     
     reply.p_data = NULL;
     reply.pack_len = 0;
@@ -777,21 +781,23 @@ static packageReply  GetCountDownTimer(uint8_t *p_data, uint16_t data_len)
         reply.result = lightpackageOPCODEFAILED;
         return reply;
     }
-    reply.p_data = (uint8_t *)wiced_bt_get_buffer(7);
+    reply.p_data = (uint8_t *)wiced_bt_get_buffer(10);
     if(reply.p_data == NULL)
     {
         reply.result = lightpackageMEMORYFAILED;
         return reply;
     }
     //获取当前延时开关灯状态
-    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,reply.p_data+7);
+    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,reply.p_data+9,&remaintime);
     reply.p_data[0] = 0;
     reply.p_data[1] = p_data[1];
     reply.p_data[2] = (p_data[2]|0x80);
     reply.p_data[3] = p_data[3];
     reply.p_data[5] = (delaytime>>8)&0xff;
     reply.p_data[6] =  delaytime&0xff;
-    reply.pack_len = 8;
+    reply.p_data[7] = (remaintime>>8)&0xff;
+    reply.p_data[8] =  remaintime&0xff;
+    reply.pack_len = 10;
     reply.result = lightpackageSUCCESS;
     return reply;
 }

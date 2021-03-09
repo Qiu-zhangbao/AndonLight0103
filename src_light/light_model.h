@@ -44,7 +44,7 @@ extern LightConfig_def LightConfig;
 typedef int32_t (*Animination)(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 
 void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime);
-void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *delaytime, uint8_t *lightness);
+void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *delaytime, uint8_t *lightness ,uint16_t *remaintime);
 void lightGetStatus(uint8_t *current, uint8_t *targe, uint16_t *transtime);
 void lightCancleAction(uint32_t);
 void lightStartAction(uint32_t);
