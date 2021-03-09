@@ -194,7 +194,7 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
             if((postmp1<AutoBrightnessSet.Item.AutoBrightnessNum)&&(postmp2<AutoBrightnessSet.Item.AutoBrightnessNum)){
                 distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
                 distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);   
-            }
+            
 
             //zhw 20200828 start         
             // if(distmp1 <= distmp2)
@@ -247,7 +247,7 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
             // }
             //----------------------------------------
             //lightnessLevel0Flag = 1; //lq20200622 定时器
-            
+            }
         }
         //zhw 20200828 start
         // LOG_VERBOSE("lightnessLevel = %d\n",LightConfig.lightnessLevel);
@@ -301,7 +301,7 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
                 if((postmp1<AutoBrightnessSet.Item.AutoBrightnessNum)&&(postmp2<AutoBrightnessSet.Item.AutoBrightnessNum)){
                     distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
                     distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);
-                }
+                
 
                 //zhw 20200828 start         
                 // if(distmp1 <= distmp2)
@@ -336,6 +336,7 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
                 // }
                 //------------------------------------------
                 //lightnessLevel0Flag = 1; //lq20200622 定时器
+                }
             }
             //zhw 20200828 start
             // LOG_VERBOSE("lightnessLevel = %d\n",LightConfig.lightnessLevel);
