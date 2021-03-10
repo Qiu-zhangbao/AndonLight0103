@@ -563,7 +563,7 @@ void LightUpdate(void)
     uint32_t temp;
 
     temp = currentCfg.lightnessLevel;
-    //LOG_VERBOSE("LightUpdate duty = %d\n",temp*100/65535);
+    //LOG_DEBUG("LightUpdate duty = %d\n",temp*100/65535);
     led_controller_status_update(currentCfg.lightingOn, currentCfg.lightnessLevel, currentCfg.lightnessCTL);
 }
 
@@ -2166,7 +2166,7 @@ int32_t light_sniffer1(int32_t tick, int32_t period, int32_t initiate, int32_t f
     currentCfg.lightingOn = 1;
     if ((tick % sniffer_cycle) <  sniffer_cycle / 2)
     {
-        if(sniffer_direction)
+        if(sniffer1set.direction)
         {
             currentCfg.lightnessLevel = liner_transfer(tick%(sniffer_cycle/2)+1, sniffer_cycle/2, sniffer1set.minlevel, sniffer1set.maxlevel);
         }
@@ -2177,7 +2177,7 @@ int32_t light_sniffer1(int32_t tick, int32_t period, int32_t initiate, int32_t f
     }
     else
     {
-        if(sniffer_direction)
+        if(sniffer1set.direction)
         {
             currentCfg.lightnessLevel = liner_transfer(tick%(sniffer_cycle/2)+1, sniffer_cycle/2, sniffer1set.maxlevel, sniffer1set.minlevel);
         }
