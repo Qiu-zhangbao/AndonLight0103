@@ -87,8 +87,7 @@ static void real_store_config_cb(void)
         LightConfig.Lightzone    = sysTimerGetSystemTimeZone();
         storageCheckConfigValue();
         LOG_DEBUG("store config \n");
-        if (sizeof(LightConfig) != flashWriteBlockSave(FLASH_ADDR_CONFIG, (uint8_t *)(&LightConfig), sizeof(LightConfig)))
-        {
+        if (sizeof(LightConfig) != flashWriteBlockSave(FLASH_ADDR_CONFIG, (uint8_t *)(&LightConfig), sizeof(LightConfig))){
             LOG_WARNING("store config failed.\n");
         } 
         LightConfig.fwupgrade = 0;
@@ -258,12 +257,12 @@ static uint8_t ACC_SN1[] = "JA_SL10_20031100012020031100000001";
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0000,cbecc597da630d3573fda59feafe6205";
 #if CHIP_SCHEME == CHIP_DEVKIT
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0001,43325c6703f0c24544bef48ff19559c4";
-static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0227,36b8b8873ace527f69d4307b892b70b6";
+static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0226,d9ae758f769214fc1ca3cc03449940cc";
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0213,e362f42e4764b973b086fcd3ad61bd6a";
 #else
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0002,08de22895b2bd75c995b3f8d0b96076c";
 // static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C020F,fe0b7ee7430195f836fca7eba65ae0c6";
-static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C021E,a83effbc2e07fa40789484a5113747a4";
+static uint8_t ACC_SN1[] = "JA_SL10_7C78B20C0225,d301ac9f52ea31e78ad7bf9311f4b21b";
 #endif
 
 // static uint8_t ACC_SN1[] = "CO_TH1_firmware_test,CO_TH1_firmware_test";

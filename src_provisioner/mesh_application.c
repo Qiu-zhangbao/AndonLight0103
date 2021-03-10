@@ -882,10 +882,18 @@ void mesh_application_init(void)
             mesh_application_gen_uuid(init.device_uuid);
         }
         // Save UUID in the NVRAM for future use
-        if (16 != mesh_nvram_access(WICED_TRUE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result))
+        len = mesh_nvram_access(WICED_TRUE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);
+        if (16 != len)
         {
-            // WICED_BT_TRACE("failed to save UUID result:%x UUID:\n", result);
+            WICED_BT_TRACE("failed to save UUID result:%x UUID:\n", result);
         }
+        // len = mesh_nvram_access(WICED_FALSE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);
+        // if (len != 16){
+        //     WICED_BT_TRACE_ARRAY(init.device_uuid, 16, "init2 UUID: %d len: %d\n", __LINE__,len);
+        //     mesh_application_gen_uuid(init.device_uuid);
+        //     WICED_BT_TRACE_ARRAY(init.device_uuid, 16, "init2 UUID: %d \n", __LINE__);
+        // }
+
     }
 #ifdef STATIC_OOB_DATA
     // Check if we have OOB Static Data program in the factory
@@ -897,6 +905,7 @@ void mesh_application_init(void)
     }
     */
 #endif
+   
     // First 6 bytes and last 6 are random. Use them for BT addresses
     memcpy(init.non_provisioned_bda, init.device_uuid, 6);
     memcpy(init.provisioned_bda, &init.device_uuid[10], 6);
@@ -912,9 +921,9 @@ void mesh_application_init(void)
     //assign config pointer to that variable at the startup. remote_provision_server uses it
     p_wiced_bt_mesh_cfg_settings = &wiced_bt_cfg_settings;
     wiced_bt_set_local_bdaddr( init.non_provisioned_bda, BLE_ADDR_RANDOM );
-    mesh_app_gatt_db_init(WICED_FALSE);
     if(WICED_TRUE == appAndonBleConnectUsed())
     {
+        mesh_app_gatt_db_init(WICED_FALSE);
 #ifndef WICEDX_LINUX
             mesh_start_stop_scan_callback(WICED_TRUE, WICED_FALSE);
             // Initialize OTA FW upgrade
@@ -1193,11 +1202,13 @@ uint32_t mesh_nvram_access(wiced_bool_t write, int inx, uint8_t* node_info, uint
         len_res = mesh_application_mcu_memory_write(inx, len, node_info);
     *p_result = 0;
 #else
-    if (!write)
+    if (!write){
         len_res = wiced_hal_read_nvram(inx, len, node_info, p_result);
+    }
     // 0 len means delete
-    else if (len != 0)
+    else if (len != 0){
         len_res = wiced_hal_write_nvram(inx, len, node_info, p_result);
+    }
     else
         wiced_hal_delete_nvram(inx, p_result);
 #endif

@@ -55,7 +55,7 @@ wiced_timer_t powerTestTimer;
 #define CHANNEL_TO_MEASURE_DC_VOLT        ADC_INPUT_P28
 #endif
 
-#define APPRESET_TIMEOUT     2
+#define APPRESET_TIMEOUT     3
 
 extern wiced_bt_cfg_settings_t wiced_bt_cfg_settings;
 
@@ -613,7 +613,7 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
     LOG_INFO("VID: %04x\n", MESH_VID);
     LOG_INFO("Fw: %02x.%02x\n", (uint8_t)((MESH_FWID>>8)&0xFF), (uint16_t)(MESH_FWID&0xFF));
     //LOG_INFO("   " VERSION_DESCRIPTION "\n");
-    
+    // while(1);
     #if LOGLEVEL >= LOGLEVEL_INFO 
         wiced_bt_device_address_t madd;
         wiced_bt_dev_read_local_addr(madd);

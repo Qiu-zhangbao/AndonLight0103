@@ -116,10 +116,10 @@ extern wiced_bt_cfg_settings_t mywiced_bt_cfg_settings;
 #define configLIGHTAIANDONMODE       1     
 #define configLIGHTAIWYZEMODE        2      
 
-#define CONFIG_OFFDELAY_MIN          3     //单位s
-#define CONFIG_OFFDELAY_MAX          7200  //单位s
-#define CONFIG_ONDELAY_MIN           3     //单位s
-#define CONFIG_ONDELAY_MAX           7200  //单位s
+#define CONFIG_OFFDELAY_MIN          3      //单位s
+#define CONFIG_OFFDELAY_MAX          36000  //单位s
+#define CONFIG_ONDELAY_MIN           3      //单位s
+#define CONFIG_ONDELAY_MAX           36000  //单位s
 #define CONFIG_DELTASTEP_MIN         2
 #define CONFIG_DELTASTEP_MAX         20
 

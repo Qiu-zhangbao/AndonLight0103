@@ -601,7 +601,7 @@ void wyzeNoticeBindDone(wyzepackettype_t *wyzereceive)
     WyzeSendMessage(WYZE_CMD_NOTICEBINDRESULT,WYZE_MSG_NOCON,replyarray,1+4,WICED_TRUE);
     
     // LightModelTurn(1,0,0);
-    LightModelSetBrightness(uint16_to_percentage(LightConfig.lightnessLevel),0,0);
+    LightModelSetBrightness(uint16_to_percentage(LightConfig.lightnessLevel),1,0);
 }
 
 //*****************************************************************************

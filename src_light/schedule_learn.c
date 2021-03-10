@@ -193,61 +193,61 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
             }
             if((postmp1<AutoBrightnessSet.Item.AutoBrightnessNum)&&(postmp2<AutoBrightnessSet.Item.AutoBrightnessNum)){
                 distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
-                distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);   
-            
+                distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440); 
 
-            //zhw 20200828 start         
-            // if(distmp1 <= distmp2)
-            // {
-            //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1]);            
-            // }
-            // else
-            // {
-            //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1]); 
-            // }
-            
-            if(distmp1 <= distmp2)
-            {
-                autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1];           
-            }
-            else
-            {
-                autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1];      
-            }
-            //zhw 20200828 end
+                //zhw 20200828 start         
+                // if(distmp1 <= distmp2)
+                // {
+                //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1]);            
+                // }
+                // else
+                // {
+                //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1]); 
+                // }
+                
+                if(distmp1 <= distmp2)
+                {
+                    autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1];           
+                }
+                else
+                {
+                    autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1];      
+                }
+                //zhw 20200828 end
 
-            //distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[i][0], 1440);
-            //distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[0][0], operationtime, 1440);
-            // if(distmp1 <= distmp2)
-            // {
-            //     while(i >= 1)
-            //     {
-            //         if(AutoBrightnessSet.Item.AutoBrightnessPoint[i-1][1] > 0)
-            //         {
-            //             LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[i-1][1]);                
-            //             break;
-            //         }
-            //         i--;                    
-            //     }
-            //     //LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[i-1][1]);            
-            // }
-            // else
-            // {
-            //     uint8_t j = 0;
-            //     while(j <= AutoBrightnessSet.Item.AutoBrightnessNum - 1)
-            //     {
-            //         if(AutoBrightnessSet.Item.AutoBrightnessPoint[j][1] > 0)
-            //         {
-            //             LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[j][1]); 
-            //             break;
-            //         }
-            //         j++;
-            //     }
-            //     //LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[0][1]); 
-            // }
-            //----------------------------------------
-            //lightnessLevel0Flag = 1; //lq20200622 定时器
+                //distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[i][0], 1440);
+                //distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[0][0], operationtime, 1440);
+                // if(distmp1 <= distmp2)
+                // {
+                //     while(i >= 1)
+                //     {
+                //         if(AutoBrightnessSet.Item.AutoBrightnessPoint[i-1][1] > 0)
+                //         {
+                //             LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[i-1][1]);                
+                //             break;
+                //         }
+                //         i--;                    
+                //     }
+                //     //LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[i-1][1]);            
+                // }
+                // else
+                // {
+                //     uint8_t j = 0;
+                //     while(j <= AutoBrightnessSet.Item.AutoBrightnessNum - 1)
+                //     {
+                //         if(AutoBrightnessSet.Item.AutoBrightnessPoint[j][1] > 0)
+                //         {
+                //             LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[j][1]); 
+                //             break;
+                //         }
+                //         j++;
+                //     }
+                //     //LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[0][1]); 
+                // }
+                //----------------------------------------
+                //lightnessLevel0Flag = 1; //lq20200622 定时器
             }
+            
         }
         //zhw 20200828 start
         // LOG_VERBOSE("lightnessLevel = %d\n",LightConfig.lightnessLevel);
@@ -301,41 +301,39 @@ uint8_t AutoAdjustBrightness(void)    //zhw 20200828
                 if((postmp1<AutoBrightnessSet.Item.AutoBrightnessNum)&&(postmp2<AutoBrightnessSet.Item.AutoBrightnessNum)){
                     distmp1 = AMinusBModX(operationtime, AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1 + 1][0], 1440);
                     distmp2 = AMinusBModX(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][0], operationtime, 1440);
-                
+                    //zhw 20200828 start         
+                    // if(distmp1 <= distmp2)
+                    // {
+                    //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1]);            
+                    // }
+                    // else
+                    // {
+                    //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1]); 
+                    // }
+                    
+                    if(distmp1 <= distmp2)
+                    {
+                        autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1];           
+                    }
+                    else
+                    {
+                        autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1];      
+                    }
+                    //zhw 20200828 end
 
-                //zhw 20200828 start         
-                // if(distmp1 <= distmp2)
-                // {
-                //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1]);            
-                // }
-                // else
-                // {
-                //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1]); 
-                // }
-                
-                if(distmp1 <= distmp2)
-                {
-                    autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp1][1];           
-                }
-                else
-                {
-                    autolightnesspercent = AutoBrightnessSet.Item.AutoBrightnessPoint[postmp2][1];      
-                }
-                //zhw 20200828 end
-
-                //next_minute = AutoBrightnessSet.Item.AutoBrightnessPoint[optrXPlus(i,1,AutoBrightnessSet.Item.AutoBrightnessNum)][0];
-                // distmp1 = operationtime - pro_minute;
-                // distmp2 = AMinusBModX(next_minute, operationtime, 1440);
-                // if(distmp1 <= distmp2)
-                // {
-                //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[i][1]);            
-                // }
-                // else
-                // {
-                //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[optrXPlus(i,1,AutoBrightnessSet.Item.AutoBrightnessNum)][1]);            
-                // }
-                //------------------------------------------
-                //lightnessLevel0Flag = 1; //lq20200622 定时器
+                    //next_minute = AutoBrightnessSet.Item.AutoBrightnessPoint[optrXPlus(i,1,AutoBrightnessSet.Item.AutoBrightnessNum)][0];
+                    // distmp1 = operationtime - pro_minute;
+                    // distmp2 = AMinusBModX(next_minute, operationtime, 1440);
+                    // if(distmp1 <= distmp2)
+                    // {
+                    //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[i][1]);            
+                    // }
+                    // else
+                    // {
+                    //     LightConfig.lightnessLevel = percentage_to_uint16(AutoBrightnessSet.Item.AutoBrightnessPoint[optrXPlus(i,1,AutoBrightnessSet.Item.AutoBrightnessNum)][1]);            
+                    // }
+                    //------------------------------------------
+                    //lightnessLevel0Flag = 1; //lq20200622 定时器
                 }
             }
             //zhw 20200828 start

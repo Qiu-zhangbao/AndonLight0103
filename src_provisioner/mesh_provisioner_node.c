@@ -58,6 +58,7 @@
 #include "src_light/adv_pack.h"
 #include "src_light/light_model.h"
 #include "src_light/vendor.h"
+#include "src_light/mylib.h"
 
 
 #define USE_LED_AND_BUTTON   // Use board specific LED and buttons
@@ -379,10 +380,16 @@ void rand128(uint8_t *p_array)
 void wiced_bt_mesh_vendor_gen_device_uuid(uint8_t *uuid)
 {
     rand128(uuid);
-    uuid[6] = node_uuid_magic_bytes[0];
-    uuid[7] = node_uuid_magic_bytes[1];
-    uuid[8] = node_uuid_magic_bytes[2];
-    uuid[9] = node_uuid_magic_bytes[3];
+    if(strlen(mesh_system_id)>16){
+        for(uint8_t i=0;i<12;i+=2)
+        {
+            uuid[15-i/2] = uuid[i/2] = HexStr2Int8U(mesh_system_id+i+strlen(PRODUCT_CODE)+1);
+        }
+    }
+    // uuid[6] = node_uuid_magic_bytes[0];
+    // uuid[7] = node_uuid_magic_bytes[1];
+    // uuid[8] = node_uuid_magic_bytes[2];
+    // uuid[9] = node_uuid_magic_bytes[3];
     // uint8_t mac_string[13] = {0};
     // {
     //     uint8_t *pdata;

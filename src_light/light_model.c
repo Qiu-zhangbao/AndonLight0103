@@ -37,6 +37,9 @@
 #define MORSECHAR_LENGTH         3
 #define MORSEWORD_LENGTH         7
 
+
+#define COUNTDOWNTIMERLEN        250         //单位ms 倒计时单位为s，所以此数值必须能被1000整除
+
 #define LIGHT_TIMER_UINT  (LIGHT_TIMER_CB_LENGTH>10?(LIGHT_TIMER_CB_LENGTH/10):1*(10/LIGHT_TIMER_CB_LENGTH))  
 
 
@@ -127,6 +130,7 @@ LightConfig_def LightConfig = DEFAULT_LIGHTNESS_CONFIG;
 static wiced_timer_t transitionTimer;
 static wiced_timer_t delay_count_Timer_500ms;
 static wiced_bool_t  lighttimeraienable = WICED_TRUE;
+static wiced_bool_t  lightdelayflag = WICED_FALSE;
 
 LightConfig_def currentCfg;
 
@@ -329,9 +333,8 @@ void lightModelCb(TIMER_PARAM_TYPE parameter)
                 }
             }
             turnOffTimeCnt = 0;
-            LOG_DEBUG("lightModelCb ctx.tick = %d, period = %d\n",ctx.tick, ctx.period);
             ctx.anim(ctx.tick-ctx.PrePowerTick, ctx.period-ctx.PrePowerTick, ctx.initiate, ctx.final);
-            LOG_VERBOSE("ctx.tick %d  turnOffTimeCnt %d lightnessLevel %d\n",ctx.tick,turnOffTimeCnt,currentCfg.lightnessLevel);
+            LOG_DEBUG("curlght %d  turnOffTimeCnt %d Lghtlght %d\n",currentCfg.lightnessLevel,turnOffTimeCnt,LightConfig.lightnessLevel);
             memset(&ctx, 0, sizeof(ctx));
             ctx.PrePowerTick = 0;
         }
@@ -341,6 +344,7 @@ void lightModelCb(TIMER_PARAM_TYPE parameter)
     else
     {
         turnOffTimeCnt = 0;
+        lightdelayflag = WICED_FALSE;
         LOG_VERBOSE("TransitionTimer Deinit \n");
         wiced_stop_timer(&transitionTimer);
         //wiced_deinit_timer(&transitionTimer);
@@ -390,6 +394,23 @@ void ligntModelAppTimerCb(void)
             turnOffTimeCnt = 300;
         }
     }
+
+    /*//未处于倒计时过程中
+    if(TurnOnOffDelay.flag == TURNONOFFDELAYRUNING){
+        if(TurnOnOffDelay.remaintime){
+            TurnOnOffDelay.remaintime--;
+            if(0 == TurnOnOffDelay.remaintime){
+                if(TurnOnOffDelay.onoff < 2){
+                    LightModelTurn(TurnOnOffDelay.onoff,0x0,0);
+                }
+                TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
+            }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+        }else{
+            TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
+        }
+    }else{
+        TurnOnOffDelay.remaintime = 0;
+    }*/
     //未进行时间同步
     systemUTCtimer = sysTimerGetSystemUTCTime();
     if(systemUTCtimer < systimer_MINSYSTIMECNT)  
@@ -428,7 +449,7 @@ void ligntModelAppTimerCb(void)
             temp = temp*60 + myclock->nMinute;
             if(temp == ((lightAutoOnOffTimer.timerList[i].time)%1440)){
                 //处于延迟开关灯过程中，不执行定时器操作，因为延迟开灯的操作时效性更高
-                if(TurnOnOffDelay.flag == TURNONOFFDELAYSTOP){
+                if((TurnOnOffDelay.flag == TURNONOFFDELAYSTOP)||(lightdelayflag == WICED_FALSE)){
                     //定时开灯且开灯亮度设置非0
                     if(lightAutoOnOffTimer.timerList[i].Aienable){
                         lighttimeraienable = WICED_TRUE;
@@ -441,7 +462,7 @@ void ligntModelAppTimerCb(void)
                     }
                     //当前灯的开关状态和定时设置的开关状态相同，不响应定时器
                     if(currentCfg.lightingOn != lightAutoOnOffTimer.timerList[i].onoffset){
-                        LightModelTurn(lightAutoOnOffTimer.timerList[i].onoffset,0x04,0);
+                        LightModelTurn(lightAutoOnOffTimer.timerList[i].onoffset,4,0);
                     }else if(lightAutoOnOffTimer.timerList[i].onoffset){ 
                         //定时开灯&已被点亮&设置了亮度时，调整亮度
                         LightModelSetBrightness(uint16_to_percentage(LightConfig.lightnessLevel),4,0);
@@ -563,7 +584,7 @@ void LightUpdate(void)
     uint32_t temp;
 
     temp = currentCfg.lightnessLevel;
-    //LOG_DEBUG("LightUpdate duty = %d\n",temp*100/65535);
+    //LOG_VERBOSE("LightUpdate duty = %d\n",temp*100/65535);
     led_controller_status_update(currentCfg.lightingOn, currentCfg.lightnessLevel, currentCfg.lightnessCTL);
 }
 
@@ -721,7 +742,16 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
         {
             if (ani_method > sizeof(ani_table) / sizeof(ani_table[0]))
                 ani_method = 0;
-            currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, 1);
+            // LOG_VERBOSE("using method: %d\n", ani_method);
+            // currentCfg.lightnessLevel = liner_transfer(tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
+            // currentCfg.lightnessLevel = parabola_transfer(tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
+            // currentCfg.lightnessLevel = polyline_transfer2(tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
+            // currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
+            if((lightdelayflag == WICED_TRUE) && (uint16_to_percentage(initiate_brightness) < 6)){
+                currentCfg.lightnessLevel = initiate_brightness;
+            }else{
+                currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, 1);
+            }
         }
         else
         {
@@ -736,14 +766,34 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
         if ((tick == 1) && (period > 1))
         {
             currentCfg.lightingOn = 1;
-            currentCfg.lightnessLevel = percentage_to_uint16(1);
+            if(lightdelayflag == WICED_TRUE){
+                if(uint16_to_percentage(LightConfig.lightnessLevel) < 10){
+                    currentCfg.lightnessLevel = LightConfig.lightnessLevel;
+                }else{
+                    currentCfg.lightnessLevel = percentage_to_uint16(10);
+                }
+            }else{
+                currentCfg.lightnessLevel = percentage_to_uint16(1);
+            }
             LOG_VERBOSE("turn on duty = %d\n",LightConfig.lightnessLevel);
         }
         else if (tick < period)
         {
             if (ani_method > sizeof(ani_table) / sizeof(ani_table[0]))
                 ani_method = 0;
-            currentCfg.lightnessLevel = liner_transfer(tick, period, percentage_to_uint16(1) + 1, LightConfig.lightnessLevel);
+            // currentCfg.lightnessLevel = liner_transfer(tick, period, percentage_to_uint16(1) + 1, LightConfig.lightnessLevel);
+            // currentCfg.lightnessLevel = ani_table[ani_method](tick, period, percentage_to_uint16(1) + 1, LightConfig.lightnessLevel);
+            if(lightdelayflag == WICED_TRUE) {
+                if(uint16_to_percentage(LightConfig.lightnessLevel) < 10){
+                    currentCfg.lightnessLevel = LightConfig.lightnessLevel;
+                }else if(tick < period - (20/LIGHT_TIMER_UINT)){
+                    currentCfg.lightnessLevel = percentage_to_uint16(10);
+                }else{
+                   currentCfg.lightnessLevel = ani_table[ani_method](tick, period, percentage_to_uint16(10), LightConfig.lightnessLevel); 
+                }
+            }else{
+                currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, LightConfig.lightnessLevel);
+            }
         }
         else
         {
@@ -772,16 +822,26 @@ void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
     }
     morsecodedisplay = WICED_FALSE;
 
+    //延迟关灯且延迟关灯功能关闭
+    //if((delay == 0xFF) && (onoff == 0) && (0 == LightConfig.offdelayset))
+    //延迟开关灯，但延迟功能关闭
+    if((delay == 0xFF) && (0 == LightConfig.offdelayset))
+    {
+        return;
+    }
+
     // if turning then return
     if (ctx.anim == turn_onoff_procedure){
         if ((ctx.final == onoff) && (TurnOnOffDelay.flag == TURNONOFFDELAYSTOP))
             return;
+        if ((ctx.final == onoff) && (lightdelayflag == WICED_FALSE))
+            return;
     }
+    lightdelayflag = WICED_FALSE;
 
     //if(onoff == TurnOnOffDelay.onoff){
         TurnOnOffDelay.remaintime = 0;
         TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-        wiced_stop_timer(&delay_count_Timer_500ms);
     // }
 
     // resolution is 10ms
@@ -852,25 +912,41 @@ void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
 #if ANDON_LIGHT_LOG_ENABLE
         LogConfig.logvalue += uint16_to_percentage(LightConfig.lightnessLevel);
 #endif
-        ctx.period = transt_to_period(transition);
-        if(ctx.period > 20)
-        {
-            uint32_t temp;
+        // adv_pair_enable();
+        if(delay == 0xFF){
+            ctx.period = (uint32_t)(LightConfig.offdelaytime)*100;  //单位转换，转换成10ms
+            lightdelayflag = WICED_TRUE;
+        }else{
+            ctx.period = transt_to_period(transition);
+            if(ctx.period > 20)
+            {
+                uint32_t temp;
 
-            temp = uint16_to_percentage(LightConfig.lightnessLevel);
-            temp = (ctx.period-20)*temp/100+20;
-            ctx.period = temp;
+                temp = uint16_to_percentage(LightConfig.lightnessLevel);
+                temp = (ctx.period-20)*temp/100+20;
+                ctx.period = temp;
+            }
         }
         ctx.period = ctx.period/LIGHT_TIMER_UINT;
     }
     else
     {
-        ctx.period = transt_to_period(transition);
-        if(ctx.period > 20){
-            uint32_t temp;
-            temp = uint16_to_percentage(LightConfig.lightnessLevel);
-            temp = (ctx.period-20)*temp/100+20;
-            ctx.period = temp;
+        // adv_pair_disable();
+        if(delay == 0xFF){
+            // transitiontime = 0x4a;
+            //TODO 
+            // transition = LightConfig.offdelayset;
+            // ctx.period = transt_to_period(transition);
+            ctx.period = (uint32_t)(LightConfig.offdelaytime)*100;  //单位转换，转换成10ms
+            lightdelayflag = WICED_TRUE;
+        }else{
+            ctx.period = transt_to_period(transition);
+            if(ctx.period > 20){
+                uint32_t temp;
+                temp = uint16_to_percentage(LightConfig.lightnessLevel);
+                temp = (ctx.period-20)*temp/100+20;
+                ctx.period = temp;
+            }
         }
         ctx.period = ctx.period/LIGHT_TIMER_UINT;
     }
@@ -921,6 +997,14 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
 {
     if (transitiontime == 0xff)
         transitiontime = transition_time;
+    
+    //延迟开关灯，但延迟功能关闭
+    if((delay == 0xFF) && (0 == LightConfig.offdelayset))
+    {
+        return;
+    }
+
+    lightdelayflag = WICED_FALSE;
 
     LightConfig.lightingOn = !currentCfg.lightingOn;
     ctx.PrePowerTick = 0xFFFF;
@@ -928,7 +1012,6 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
     // if(LightConfig.lightingOn == TurnOnOffDelay.onoff){
         TurnOnOffDelay.remaintime = 0;
         TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-        wiced_stop_timer(&delay_count_Timer_500ms);
     // }
     if(wiced_is_timer_in_use(&morsecodeTimer)){
         wiced_stop_timer(&morsecodeTimer);
@@ -1003,11 +1086,17 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
             LightConfig.lightnessLevel  = percentage_to_uint16(lightnessAi);
         }
 #endif
-        ctx.period = transt_to_period(transitiontime);
-        if(ctx.period > 20){
-            temp = uint16_to_percentage(LightConfig.lightnessLevel);
-            temp = (ctx.period-20)*temp/100+20;
-            ctx.period = temp;
+        // adv_pair_enable();
+        if(delay == 0xFF){
+            ctx.period = (uint32_t)(LightConfig.ondelaytime)*100;  //单位转换，转换成10ms
+            lightdelayflag = WICED_TRUE;
+        }else{
+            ctx.period = transt_to_period(transitiontime);
+            if(ctx.period > 20){
+                temp = uint16_to_percentage(LightConfig.lightnessLevel);
+                temp = (ctx.period-20)*temp/100+20;
+                ctx.period = temp;
+            }
         }
         ctx.period = ctx.period/LIGHT_TIMER_UINT;
 #if ANDON_LIGHT_LOG_ENABLE
@@ -1018,13 +1107,22 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
     {
         a = 1;
         b = 0;
-        ctx.period = transt_to_period(transitiontime);
-        if(ctx.period > 20)
-        {
-            uint32_t temp;
-            temp = uint16_to_percentage(LightConfig.lightnessLevel);
-            temp = (ctx.period-20)*temp/100+20;
-            ctx.period = temp;
+        if(delay == 0xFF){
+            // transitiontime = 0x4a;
+            //TODO 
+            //transitiontime = LightConfig.offdelayset;
+            //ctx.period = transt_to_period(transitiontime);
+            ctx.period = (uint32_t)(LightConfig.offdelaytime)*100;  //单位转换，转换成10ms
+            lightdelayflag = WICED_TRUE;
+        }else{
+            ctx.period = transt_to_period(transitiontime);
+            if(ctx.period > 20)
+            {
+                uint32_t temp;
+                temp = uint16_to_percentage(LightConfig.lightnessLevel);
+                temp = (ctx.period-20)*temp/100+20;
+                ctx.period = temp;
+            }
         }
         ctx.period = ctx.period/LIGHT_TIMER_UINT;
         // adv_pair_disable();
@@ -1119,10 +1217,11 @@ void LightModelToggleForPowerOff(uint8_t transitiontime, uint16_t delay, uint16_
     LightConfig.lightingOn = !currentCfg.lightingOn;
     ctx.PrePowerTick = 0xFFFF;
 
+    lightdelayflag = WICED_FALSE;
+
     // if(LightConfig.lightingOn == TurnOnOffDelay.onoff){
         TurnOnOffDelay.remaintime = 0;
         TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-        wiced_stop_timer(&delay_count_Timer_500ms);
     // }
 
 #if ANDON_LIGHT_LOG_ENABLE
@@ -1276,6 +1375,7 @@ int32_t brightness_procedure(int32_t tick, int32_t period, int32_t initiate, int
 
 void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t delay)
 {
+    lightdelayflag = WICED_FALSE;
     if (transitiontime == 0xff)
         transitiontime = transition_time;
 
@@ -1294,7 +1394,6 @@ void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t
 
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     TurnOnOffDelay.remaintime = 0;
-    wiced_stop_timer(&delay_count_Timer_500ms);
 
 #if ANDON_LIGHT_LOG_ENABLE
     //无效时间，存储当前时间
@@ -1415,10 +1514,9 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
         }
     }
     morsecodedisplay = WICED_FALSE;
-
+    lightdelayflag = WICED_FALSE;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     TurnOnOffDelay.remaintime = 0;
-    wiced_stop_timer(&delay_count_Timer_500ms);
 
     LOG_DEBUG("Delata: %d  transitiontime: %d\n",delta_in,transitiontime);
     if(delta_in == 0){
@@ -1762,7 +1860,8 @@ void LightModelTurnOffDelay(int8_t res,uint8_t transitiontime, uint16_t delay)
         return;
     }
     advRestartPair();
-    TurnOnOffDelay.onoff = !currentCfg.lightingOn;
+    TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
+    TurnOnOffDelay.remaintime = 0;
     LightModelToggle(0,transitiontime,0xFF);
 }
 
@@ -1784,8 +1883,10 @@ void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter)
             }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
         }else{
             TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
+            wiced_stop_timer(&delay_count_Timer_500ms);
         }
     }else{
+        wiced_stop_timer(&delay_count_Timer_500ms);
         TurnOnOffDelay.remaintime = 0;
     }
 
@@ -1797,17 +1898,18 @@ void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)
     if(TurnOnOffDelay.flag != TURNONOFFDELAYSTOP){
         return;
     }
+    lightdelayflag = WICED_FALSE;
     TurnOnOffDelay.onoff = onoff;
     if((delaytime > CONFIG_OFFDELAY_MIN) && (delaytime < CONFIG_OFFDELAY_MAX)){
-        TurnOnOffDelay.settime = delaytime*4;     
-        TurnOnOffDelay.remaintime = delaytime*4;  
+        TurnOnOffDelay.settime = delaytime*(1000/COUNTDOWNTIMERLEN);     
+        TurnOnOffDelay.remaintime = delaytime*(1000/COUNTDOWNTIMERLEN)-1; 
         TurnOnOffDelay.flag = TURNONOFFDELAYRUNING;  
-        wiced_start_timer(&delay_count_Timer_500ms, 250);
+        wiced_start_timer(&delay_count_Timer_500ms, COUNTDOWNTIMERLEN);
     }else{
-        TurnOnOffDelay.settime = CONFIG_DEFAULT_OFFDELAY*4;     
-        TurnOnOffDelay.remaintime = CONFIG_DEFAULT_OFFDELAY*4;  
+        TurnOnOffDelay.settime = CONFIG_DEFAULT_OFFDELAY*(1000/COUNTDOWNTIMERLEN);     
+        TurnOnOffDelay.remaintime = CONFIG_DEFAULT_OFFDELAY*(1000/COUNTDOWNTIMERLEN);
         TurnOnOffDelay.flag = TURNONOFFDELAYRUNING;  
-        wiced_start_timer(&delay_count_Timer_500ms, 250);
+        wiced_start_timer(&delay_count_Timer_500ms, COUNTDOWNTIMERLEN);
     }
 
     if(currentCfg.lightingOn){
@@ -1818,12 +1920,12 @@ void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)
 
 void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *settime, uint16_t *remaintime, uint8_t *lightness)
 {
-    *settime = TurnOnOffDelay.settime/4;
+    *settime = TurnOnOffDelay.settime/(1000/COUNTDOWNTIMERLEN);
     *lightness = LightConfig.lightingOn?uint16_to_percentage(LightConfig.lightnessLevel):0;
     if(TurnOnOffDelay.flag == TURNONOFFDELAYSTOP){
         TurnOnOffDelay.remaintime == 0;
     }
-    *remaintime = TurnOnOffDelay.remaintime/4;
+    *remaintime = (TurnOnOffDelay.remaintime+1)/(1000/COUNTDOWNTIMERLEN);
     if(TurnOnOffDelay.remaintime == 0){
         *onoff = 3;
     }else{
@@ -1894,13 +1996,13 @@ void LightModelMorseCodeDisplay(int8_t res,uint8_t transitiontime, uint16_t dela
     
     TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-    wiced_stop_timer(&delay_count_Timer_500ms);
+    lightdelayflag = WICED_FALSE;
     advRestartPair();
 
     memset(&ctx, 0, sizeof(ctx));
     LightConfig.lightnessLevel = currentCfg.lightnessLevel;
     LightConfig.lightingOn = currentCfg.lightingOn;
-
+    StoreConfig();
     LOG_DEBUG("LightMorseDisplay........ CODE: %s\n",morsecodelist);
     //todo 停掉定时器
     if(wiced_is_timer_in_use(&morsecodeTimer)){
@@ -1974,10 +2076,14 @@ void LightModelMorseCodeDisplay(int8_t res,uint8_t transitiontime, uint16_t dela
 
 void lightStartAction(uint32_t startAction){
     LOG_DEBUG("startAction %04x",startAction);
-    if(LightConfig.offdelayset == 0){
-        return;
-    }
     if(startAction&lightSTARTTRANSIONTIME){
+        LOG_DEBUG("offdelayset %04x",LightConfig.offdelayset);
+	    if(LightConfig.offdelayset == 0){
+            return;
+        }
+        lightdelayflag = WICED_FALSE;
+        TurnOnOffDelay.remaintime = 0;
+        TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
         LightModelToggle(0,0,0xFF);
     }else{
         return;
@@ -1993,10 +2099,10 @@ void lightCancleAction(uint32_t canclemask){
             return;
         }
         memset(&ctx, 0, sizeof(ctx));
+        lightdelayflag = WICED_FALSE;
     }else if(canclemask&lightCANCLECOUNTDOWN){
         TurnOnOffDelay.remaintime = 0; 
         TurnOnOffDelay.flag = TURNONOFFDELAYSTOP; 
-        wiced_stop_timer(&delay_count_Timer_500ms);
         return;
     }else{
         return;
@@ -2052,8 +2158,8 @@ int32_t light_flashing(int32_t tick, int32_t period, int32_t initiate, int32_t f
             currentCfg.lightingOn = LightConfig.lightingOn = 0;
             currentCfg.lightnessLevel = LightConfig.lightnessLevel;
         }
-        llogsaveflag = 1;
-        StoreConfig();
+        // llogsaveflag = 1;
+        // StoreConfig();
         memset(&ctx, 0, sizeof(ctx));
         LOG_VERBOSE("light_flashing end\n");
         LightUpdate();
@@ -2074,7 +2180,7 @@ void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t 
 
     TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-    wiced_stop_timer(&delay_count_Timer_500ms);
+    lightdelayflag = WICED_FALSE;
     
     flashing_cycle = cycle/LIGHT_TIMER_UINT;
     if(flashing_cycle < 2)
@@ -2127,11 +2233,6 @@ void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t 
         //wiced_init_timer(&transitionTimer, lightModelCb, 0, WICED_MILLI_SECONDS_PERIODIC_TIMER);
         wiced_start_timer(&transitionTimer, LIGHT_TIMER_CB_LENGTH);
         //StoreConfig();
-        if(issaved)
-        {
-            LightConfig.lightingOn = (ctx.final>654)?1:0;
-            LightConfig.lightnessLevel = ctx.final;    
-        }
     }
     else
     {
@@ -2149,12 +2250,20 @@ void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t 
         
         LOG_VERBOSE("LightFlash Deinit \n");
         LightUpdate();
-        if(issaved)
-        {
-            LightConfig.lightingOn = (ctx.final>654)?1:0;
-            LightConfig.lightnessLevel = ctx.final; 
-            // llogsaveflag = 1; 
-            // StoreConfig(); 
+    }
+
+    if(issaved)
+    {
+        LightConfig.lightingOn = (ctx.final>654)?1:0;
+        LightConfig.lightnessLevel = ctx.final; 
+        llogsaveflag = 1; 
+        StoreConfig(); 
+        //主动上报亮度
+        if(LightConfig.bleonly != CONFIG_BLEONLY){
+            vendorSendDevStatus();
+        }
+        if(LightConfig.bleonly != CONFIG_MESHONLY){
+            andonServerSendLightStatus();
         }
     }
 }
@@ -2201,12 +2310,13 @@ int32_t light_sniffer1(int32_t tick, int32_t period, int32_t initiate, int32_t f
             {
                 //LightConfig.lightingOn = 1;
                 ctx.tick  = ctx.period;
+                currentCfg.lightnessLevel = final;
                 //LightConfig.lightnessLevel = ctx.final;
             }
         }
         else
         {
-            if((final == 0) && (currentCfg.lightnessLevel < 657))
+            if((final == 0) && (currentCfg.lightnessLevel < 656))
             {
                 //LightConfig.lightingOn = currentCfg.lightingOn = 0;
                 currentCfg.lightingOn = 0;
@@ -2216,14 +2326,29 @@ int32_t light_sniffer1(int32_t tick, int32_t period, int32_t initiate, int32_t f
             {
                 //LightConfig.lightingOn = 1;
                 ctx.tick  = ctx.period;
+                currentCfg.lightnessLevel = final;
                 //LightConfig.lightnessLevel = ctx.final;
             }
         }
         LOG_DEBUG("lightnessLevel :%d\n",currentCfg.lightnessLevel);
         if(ctx.tick  == ctx.period)
         {
-            llogsaveflag = 1;
-            StoreConfig();
+            LightConfig.lightingOn = currentCfg.lightingOn;
+            if(LightConfig.lightingOn){
+                LightConfig.lightnessLevel = currentCfg.lightnessLevel;
+            }
+            LOG_DEBUG("setfinal:%d final:%d on/off:%d lightnessLevel:%d\n",sniffer1set.final,final,LightConfig.lightingOn,LightConfig.lightnessLevel);
+            // llogsaveflag = 1;
+            // StoreConfig();
+            // //渐变周期大于1s时，渐变完成后主动上报一次状态
+            // if(ctx.period > 1000/LIGHT_TIMER_CB_LENGTH){
+            //     if(LightConfig.bleonly != CONFIG_BLEONLY){
+            //         vendorSendDevStatus();
+            //     }
+            //     if(LightConfig.bleonly != CONFIG_MESHONLY){
+            //         andonServerSendLightStatus();
+            //     }
+            // }
             memset(&ctx, 0, sizeof(ctx));
         }
     }
@@ -2284,6 +2409,7 @@ void LightSniffer1(Light_Sniffer1_t snifferinfo )
         ctx.period = sniffer_cycle * (sniffer1set.times+1);
         ctx.initiate = LightConfig.lightingOn;
         ctx.final = sniffer1set.final;
+        LOG_DEBUG("maxlevel:%d minlevel:%d final:%d final:%d \n",sniffer1set.maxlevel,sniffer1set.minlevel,sniffer1set.final,ctx.final);
         // LightConfig.lightingOn = 1;
         // if(ctx.final)
         // {
@@ -2305,15 +2431,23 @@ void LightSniffer1(Light_Sniffer1_t snifferinfo )
         
         LOG_VERBOSE("LightSniffer Deinit \n");
         LightUpdate();
-        return;
     }
     if(snifferinfo.issaved)
     {
-        if((ctx.final == 0) || (ctx.final < 657)){
+        if((ctx.final == 0) || (ctx.final < 656)){
             LightConfig.lightingOn = 0;
         }else{
             LightConfig.lightingOn = 1;
             LightConfig.lightnessLevel = ctx.final;
+        }
+        llogsaveflag = 1;
+        StoreConfig();
+        //主动上报亮度
+        if(LightConfig.bleonly != CONFIG_BLEONLY){
+            vendorSendDevStatus();
+        }
+        if(LightConfig.bleonly != CONFIG_MESHONLY){
+            andonServerSendLightStatus();
         }
     }
 }
@@ -2358,12 +2492,13 @@ int32_t light_sniffer(int32_t tick, int32_t period, int32_t initiate, int32_t fi
             {
                 //LightConfig.lightingOn = 1;
                 ctx.tick  = ctx.period;
+                currentCfg.lightnessLevel = final;
                 //LightConfig.lightnessLevel = ctx.final;
             }
         }
         else
         {
-            if((final == 0) && (currentCfg.lightnessLevel < 657))
+            if((final == 0) && (currentCfg.lightnessLevel < 656))
             {
                 //LightConfig.lightingOn = currentCfg.lightingOn = 0;
                 currentCfg.lightingOn = 0;
@@ -2373,14 +2508,15 @@ int32_t light_sniffer(int32_t tick, int32_t period, int32_t initiate, int32_t fi
             {
                 //LightConfig.lightingOn = 1;
                 ctx.tick  = ctx.period;
+                currentCfg.lightnessLevel = final;
                 //LightConfig.lightnessLevel = ctx.final;
             }
         }
         LOG_DEBUG("lightnessLevel :%d\n",currentCfg.lightnessLevel);
         if(ctx.tick  == ctx.period)
         {
-            llogsaveflag = 1;
-            StoreConfig();
+            // llogsaveflag = 1;
+            // StoreConfig();
             memset(&ctx, 0, sizeof(ctx));
         }
     }
@@ -2401,7 +2537,7 @@ void LightSniffer(uint16_t cycle, uint16_t times, uint8_t direction,uint8_t fina
 
     TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-    wiced_stop_timer(&delay_count_Timer_500ms);
+    lightdelayflag = WICED_FALSE;
 
     sniffer_cycle = cycle/LIGHT_TIMER_UINT;
     //sniffer_times = times;
@@ -2446,15 +2582,24 @@ void LightSniffer(uint16_t cycle, uint16_t times, uint8_t direction,uint8_t fina
         
         LOG_VERBOSE("LightSniffer Deinit \n");
         LightUpdate();
-        return;
+        // return;
     }
     if(issaved)
     {
-        if((ctx.final == 0) || (ctx.final < 657)){
+        if((ctx.final == 0) || (ctx.final < 656)){
             LightConfig.lightingOn = 0;
         }else{
             LightConfig.lightingOn = 1;
             LightConfig.lightnessLevel = ctx.final;
+        }
+        //主动上报亮度
+        llogsaveflag = 1;
+        StoreConfig();
+        if(LightConfig.bleonly != CONFIG_BLEONLY){
+            vendorSendDevStatus();
+        }
+        if(LightConfig.bleonly != CONFIG_MESHONLY){
+            andonServerSendLightStatus();
         }
     }
 }
@@ -2542,7 +2687,7 @@ void LightFlashAndSniffer(Light_FlashAndSniffer_t setPara)
     morsecodedisplay = WICED_FALSE;
     TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
-    wiced_stop_timer(&delay_count_Timer_500ms);
+    lightdelayflag = WICED_FALSE;
     
     flashandsniffer_flashtimes = setPara.flash_times;
     flashandsniffer_flashtfrist = setPara.flash_first;

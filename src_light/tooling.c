@@ -74,7 +74,7 @@ static tooling_burnin_t tooling_burnin_data={
 
 wiced_timer_t toolingtimer;
 uint16_t      tooling_cnt;
-uint16_t      toolrssi[TOOL_MAX_RSSICNT] ={0};
+uint16_t      toolrssi[TOOL_MAX_RSSICNT+1] ={0};
 uint16_t      toolrssicnt = 0;
 uint16_t      toolafterflag = 0;
 int16_t       toolrssiset = -80;
@@ -287,21 +287,18 @@ uint8_t tooling_burninTest(wiced_bt_ble_scan_results_t *p_scan_result)
     toolrssi[toolrssicnt] = rssiNum;
     
     //正向查找
-    for(i=0; i<toolrssicnt; i++)
-    {
-        if(rssiNum < toolrssi[i]) 
-        {
+    for(i=0; i<toolrssicnt; i++){
+        if(rssiNum < toolrssi[i]){
             break;
         }
     }
     //反向查找
-    for(j=toolrssicnt; j>i; j--)
-    {
+    for(j=toolrssicnt; j>i; j--){
         toolrssi[j] = toolrssi[j-1];
     }
     toolrssi[i] = rssiNum;
-
     toolrssicnt++;
+
     if(toolrssicnt > (TOOL_MAX_RSSICNT-1))
     {
         //分别去除最大和最小的3个值
@@ -405,6 +402,7 @@ void tooling_handle(wiced_bt_ble_scan_results_t *p_scan_result,uint16_t cmd, uin
                     LightConfig.fristpair   = CONFIG_UNPAIR;
 					// StoreConfig();
                     ResetToolConfig();
+                    appSetAdvDisable();
                     clear_flash_for_reset(&mesh_config,mesh_nvram_access);
                     //停止闪烁
                     LightFlash(0,0,100,100,0);
