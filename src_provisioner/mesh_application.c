@@ -478,7 +478,6 @@ void mesh_application_start()
 
     // setup NVRAM IDs which will be used by core and models
     mesh_setup_nvram_ids();
-
     WICED_BT_TRACE("Mesh Start: %d.%d.%d.%d\n", WICED_SDK_MAJOR_VER, WICED_SDK_MINOR_VER, WICED_SDK_REV_NUMBER, WICED_SDK_BUILD_NUMBER);
 
 
@@ -880,6 +879,7 @@ void mesh_application_init(void)
         {
             // Not programmed at factory, generate UUID
             mesh_application_gen_uuid(init.device_uuid);
+            WICED_BT_TRACE("failed to read UUID \n");
         }
         // Save UUID in the NVRAM for future use
         len = mesh_nvram_access(WICED_TRUE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);

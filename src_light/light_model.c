@@ -96,6 +96,7 @@ extern void andonServerSendLightStatus(void);
 void MorseCodeTimerCb(TIMER_PARAM_TYPE parameter);
 void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter);
 int8_t uint16_to_percentage(uint16_t value);
+uint16_t percentage_to_uint16(int8_t percentage);
 int32_t light_flashing(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 int32_t light_sniffer(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 int32_t light_flashandsniffer(int32_t tick, int32_t period, int32_t initiate, int32_t final);
@@ -458,7 +459,7 @@ void ligntModelAppTimerCb(void)
                     }
                     if((lightAutoOnOffTimer.timerList[i].brightness)&&(lightAutoOnOffTimer.timerList[i].onoffset)){
                         lighttimeraienable = WICED_FALSE;
-                        LightConfig.lightnessLevel = lightAutoOnOffTimer.timerList[i].brightness;
+                        LightConfig.lightnessLevel = percentage_to_uint16(lightAutoOnOffTimer.timerList[i].brightness);
                     }
                     //当前灯的开关状态和定时设置的开关状态相同，不响应定时器
                     if(currentCfg.lightingOn != lightAutoOnOffTimer.timerList[i].onoffset){
@@ -888,7 +889,7 @@ void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
     {
 #if LIGHTAI == configLIGHTAIANDONMODE
         // lightnesslogbuf[3] = LightConfig.lightnessLevel;
-        if(AutoBrightnessSet.Item.FlagModelOn)
+        if((AutoBrightnessSet.Item.FlagModelOn)&&(lighttimeraienable))
         {
             uint16_t lightnessAi = 0;
             lightnessAi = AutoAdjustBrightness();
@@ -900,12 +901,14 @@ void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
             LOG_DEBUG("lght a: %d\n",LightConfig.lightnessLevel );
         }
 #elif LIGHTAI == configLIGHTAIWYZEMODE
-        uint16_t lightnessAi = 0;
-        sysclockToWyzeAIClock(ptrsysClock,ptrsysClock);
-        lightnessAi = ai_predict(sysClock);
-        if(lightnessAi)
-        {
-            LightConfig.lightnessLevel  = percentage_to_uint16(lightnessAi);
+        if (lighttimeraienable){
+            uint16_t lightnessAi = 0;
+            sysclockToWyzeAIClock(ptrsysClock,ptrsysClock);
+            lightnessAi = ai_predict(sysClock);
+            if(lightnessAi)
+            {
+                LightConfig.lightnessLevel  = percentage_to_uint16(lightnessAi);
+            }
         }
 #endif
 
@@ -950,7 +953,7 @@ void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
         }
         ctx.period = ctx.period/LIGHT_TIMER_UINT;
     }
-    if (lighttimeraienable){
+    {
 #if LIGHTAI == configLIGHTAIANDONMODE
         BrightModelLearning(SystemUTCtimer0,onoff?uint16_to_percentage(LightConfig.lightnessLevel):0);
         AutoBrightnessSet.Item.AutoBrightnessSetSave = 1;

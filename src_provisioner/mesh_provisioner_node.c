@@ -380,7 +380,7 @@ void rand128(uint8_t *p_array)
 void wiced_bt_mesh_vendor_gen_device_uuid(uint8_t *uuid)
 {
     rand128(uuid);
-    if(strlen(mesh_system_id)>16){
+    if(strlen(mesh_system_id)>strlen(PRODUCT_CODE)+12){
         for(uint8_t i=0;i<12;i+=2)
         {
             uuid[15-i/2] = uuid[i/2] = HexStr2Int8U(mesh_system_id+i+strlen(PRODUCT_CODE)+1);
