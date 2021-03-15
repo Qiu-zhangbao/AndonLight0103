@@ -355,6 +355,28 @@ void andonServerSendLightStatus(void)
 }
 
 //*****************************************************************************
+// 函数名称: andonServerSendLightCountDownStatus
+// 函数描述: 
+// 函数输入:  
+// 函数返回值: 
+//*****************************************************************************/
+void andonServerSendLightCountDownStatus(void)
+{
+    packageReply reply;
+    reply = lightpackNotifyCountdownStata();
+    if(reply.result == lightpackageMEMORYFAILED)
+    {
+        LOG_DEBUG("2....ERR!!!\n");
+        return;
+    }
+    if(reply.p_data != NULL)
+    {
+        AndonGattSendNotification(myconn_id, reply.pack_len, reply.p_data, WICED_TRUE);
+        wiced_bt_free_buffer(reply.p_data);
+    }
+}
+
+//*****************************************************************************
 // 函数名称: andonServerSendResetStatus
 // 函数描述: 
 // 函数输入:  

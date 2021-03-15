@@ -58,6 +58,7 @@ extern void OnVendorPktArrive(wiced_bt_mesh_event_t *p_event, uint8_t *p_data, u
 extern void vendorSendUnproDevInfoToSuperNode(uint8_t *pdata,uint16_t len,uint16_t dst);
 extern void vendorSendReqDBVersion(void);
 extern void vendorSendDevStatus(void);
+extern void vendorSendDevCountDownStatus(void);
 extern void vendorSendDevResetStatus(void);
 extern void vendorSendStatusDB(void);
 extern void vendorStopDBSync(void);

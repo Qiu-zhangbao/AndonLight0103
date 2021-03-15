@@ -34,6 +34,7 @@
 
 void andonServerSendLightStatus(void);
 void andonServerSendResetStatus(void);
+void andonServerSendLightCountDownStatus(void);
 void AndonServiceGattDisConnect(void);
 wiced_bt_gatt_status_t AndonServerReadHandle(uint16_t conn_id, wiced_bt_gatt_read_t * p_read_data);
 wiced_bt_gatt_status_t AndonServerWriteHandle(uint16_t conn_id, wiced_bt_gatt_write_t * p_data);

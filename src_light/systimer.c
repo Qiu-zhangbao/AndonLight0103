@@ -158,7 +158,12 @@ uint32_t sysTimerGetSystemUTCTime(void)
 //*****************************************************************************/
 int8_t sysTimerGetSystemTimeZone(void)
 {
-    return sysTimerTimezone;
+    int8_t timezone;
+    timezone = sysTimerTimezone;
+    if(daylightset.daylight){
+        timezone += DAYLIGHTBITOFFSET;  //时区的范围是-28~24 超过24则表示处于夏令时时段
+    }
+    return timezone;
 }
 //*****************************************************************************
 // 函数名称: sysTimerGetClockTime
@@ -190,7 +195,7 @@ systimerClock_t* sysTimerGetClockTime(void)
     timestamp = SystemUTCtimer + (sysTimerTimezone/2)*3600  + (sysTimerTimezone%2)*1800 + 1000000000;
     if(daylightset.daylight)  //夏令时段
     {
-        timestamp = SystemUTCtimer + 3600;
+        timestamp = timestamp + 3600;
     }
 
 	nDays = timestamp/DAYMS + 1;    //time函数获取的是从1970年以来的秒数，因此需要先得到天数  

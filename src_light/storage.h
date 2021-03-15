@@ -21,7 +21,7 @@
 #define LOG_TEMPERATURETYPE         5
 #define LOG_TEMPERATURETYPE         5
 
-
+#define DAYLIGHTBITOFFSET           64 
 #define stargeBINDKEYMAXLEN         80     //不能超过FLASH_USERBLOCK_SIZE-10
 
 typedef struct {
@@ -34,7 +34,7 @@ typedef struct {
     uint32_t Lightontime;
     uint32_t Lightruntime;
     uint32_t LightUTCtime;
-    uint8_t  Lightzone;
+    int8_t   Lightzone;   //timezone在夏令时时段时，其值会+DAYLIGHTBITOFFSET
     uint8_t  bleonly;
     uint8_t  fristpair;
     uint8_t  brightdeltastep;

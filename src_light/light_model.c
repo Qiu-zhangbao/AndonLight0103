@@ -93,6 +93,7 @@ const uint8_t Morsecodemask[][6] = {
 };
 
 extern void andonServerSendLightStatus(void);
+extern void andonServerSendLightCountDownStatus(void);
 void MorseCodeTimerCb(TIMER_PARAM_TYPE parameter);
 void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter);
 int8_t uint16_to_percentage(uint16_t value);
@@ -550,7 +551,12 @@ void LightLoad(void)
         }
         if(LightConfig.LightUTCtime)
         {
-            sysTimerSetSystemUTCTime(LightConfig.LightUTCtime,LightConfig.Lightzone,0);
+            uint8_t daylight = 0;
+            if(LightConfig.Lightzone > 24){  
+                LightConfig.Lightzone -= DAYLIGHTBITOFFSET;
+                daylight = 1;
+            }
+            sysTimerSetSystemUTCTime(LightConfig.LightUTCtime,LightConfig.Lightzone,daylight);
         }
         
     }
@@ -1889,6 +1895,16 @@ void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter)
             wiced_stop_timer(&delay_count_Timer_500ms);
         }
     }else{
+        if(TurnOnOffDelay.remaintime != 0){
+            TurnOnOffDelay.remaintime = 0;
+            //打断倒计时后，发送停止倒计时给app
+            if(LightConfig.bleonly != CONFIG_BLEONLY){
+                vendorSendDevCountDownStatus();
+            }
+            if(LightConfig.bleonly != CONFIG_MESHONLY){
+                andonServerSendLightCountDownStatus();
+            }
+        }
         wiced_stop_timer(&delay_count_Timer_500ms);
         TurnOnOffDelay.remaintime = 0;
     }
@@ -1997,7 +2013,6 @@ void LightModelMorseCodeDisplay(int8_t res,uint8_t transitiontime, uint16_t dela
     uint16_t timelength;
     uint8_t *codemaskptr;
     
-    TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     lightdelayflag = WICED_FALSE;
     advRestartPair();
@@ -2085,7 +2100,6 @@ void lightStartAction(uint32_t startAction){
             return;
         }
         lightdelayflag = WICED_FALSE;
-        TurnOnOffDelay.remaintime = 0;
         TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
         LightModelToggle(0,0,0xFF);
     }else{
@@ -2181,7 +2195,6 @@ void LightFlash(uint16_t cycle, uint16_t times,uint8_t flashbrightness, uint8_t 
     }
     morsecodedisplay = WICED_FALSE;
 
-    TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     lightdelayflag = WICED_FALSE;
     
@@ -2538,7 +2551,6 @@ void LightSniffer(uint16_t cycle, uint16_t times, uint8_t direction,uint8_t fina
     }
     morsecodedisplay = WICED_FALSE;
 
-    TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     lightdelayflag = WICED_FALSE;
 
@@ -2688,7 +2700,6 @@ void LightFlashAndSniffer(Light_FlashAndSniffer_t setPara)
         wiced_stop_timer(&morsecodeTimer);
     }
     morsecodedisplay = WICED_FALSE;
-    TurnOnOffDelay.remaintime = 0;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
     lightdelayflag = WICED_FALSE;
     

@@ -286,6 +286,37 @@ void vendorSendDevStatus(void)
     //wiced_bt_free_buffer(reply.p_data);
 }
 
+
+//*****************************************************************************
+// 函数名称: vendorSendDevCountDownStatu
+// 函数描述: 
+// 函数输入:  
+// 函数返回值: 
+//*****************************************************************************/
+void vendorSendDevCountDownStatus(void)
+{
+    packageReply reply;
+    
+    reply = lightpackNotifyCountdownStata();
+    if(reply.result == lightpackageMEMORYFAILED)
+    {
+        return;
+    }
+
+    if (wiced_is_timer_in_use(&vendorPackDelayTimer))
+    {
+        wiced_stop_timer(&vendorPackDelayTimer);
+    }
+    if(waitforSendPack.p_data != NULL)  //前面的还在等待发送，取消发送，不发了
+    {
+        vendorFreeBuffer(waitforSendPack.p_data);
+    }
+    waitforSendPack.p_data   = reply.p_data;
+    waitforSendPack.pack_len = reply.pack_len;
+    waitforSendPack.dst      = wiced_bt_mesh_vendor_get_group(MESH_VENDOR_GROUP_PROVISIONER)->addr; 
+    waitforSendPack.opcode   = MESH_VENDOR_OPCODE_STATUS; 
+    wiced_start_timer(&vendorPackDelayTimer,own_bd_addr[5]%500+3500);
+}
 //*****************************************************************************
 // 函数名称: vendorSendDevStatus
 // 函数描述: 

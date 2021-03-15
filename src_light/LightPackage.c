@@ -2248,6 +2248,43 @@ packageReply lightpackNotifyDevStata(void)
     return reply;
 }
 
+
+//*****************************************************************************
+// 函数名称: GetTurnOffDelay
+// 函数描述: 
+// 函数输入:  
+// 函数返回值: 
+//*****************************************************************************/
+packageReply  lightpackNotifyCountdownStata(void)
+{
+    packageReply reply;
+    uint16_t delaytime;
+    uint16_t remaintime;
+
+    reply.p_data = NULL;
+    reply.pack_len = 0;
+    reply.p_data = (uint8_t *)wiced_bt_get_buffer(10);
+    if(reply.p_data == NULL)
+    {
+        reply.result = lightpackageMEMORYFAILED;
+        return reply;
+    }
+    //获取当前延时开关灯状态
+    lightGetDelayOnOffTimer(reply.p_data+4,&delaytime,&remaintime,reply.p_data+9);
+    reply.p_data[0] = 0;
+    reply.p_data[1] = ++u8lightpackSendCno;
+    reply.p_data[2] = ACTION_STATUS;
+    reply.p_data[3] = 0x06;
+    reply.p_data[5] = (delaytime>>8)&0xff;
+    reply.p_data[6] =  delaytime&0xff;
+    reply.p_data[7] = (remaintime>>8)&0xff;
+    reply.p_data[8] =  remaintime&0xff;
+    reply.pack_len = 10;
+    reply.result = lightpackageSUCCESS;
+    return reply;
+}
+
+
 //*****************************************************************************
 // 函数名称: lightpackNotifyDevStata
 // 函数描述: 向网络中设备发送自己的当前状态

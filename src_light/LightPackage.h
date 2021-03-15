@@ -48,6 +48,7 @@ typedef struct packagereply_t
 void obfs(uint8_t *data, uint16_t len);
 uint8_t Auth(uint8_t *data, uint16_t len);
 packageReply lightpackNotifyDevStata(void);
+packageReply  lightpackNotifyCountdownStata(void);
 packageReply lightpackNotifyDevResetStata(void);
 packageReply lightpackUnpackMsgNoEncrypt(uint8_t *p_data, uint16_t data_len);
 packageReply lightpackUnpackMsg(uint8_t *p_data, uint16_t data_len);

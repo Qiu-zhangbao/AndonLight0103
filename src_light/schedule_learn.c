@@ -749,7 +749,7 @@ static void BrightStateFilter(uint8_t Brightfilter)
         inext2 = optrXPlus(i, 2, centerlen);
         if (center[i].BrightState > 0)
         {
-            while ((center[inext].BrightState > 0) && (centerlen > 2) &&
+            while ((center[i].BrightState > 0) && (center[inext].BrightState > 0) && (centerlen > 2) &&
              (center[inext].BrightState <= (center[i].BrightState + Brightfilter)) &&
              ((center[inext].BrightState + Brightfilter) >= center[i].BrightState))
             {
@@ -822,7 +822,7 @@ static void BrightStateFilter(uint8_t Brightfilter)
         }
         else
         {
-            while ((center[inext].BrightState == 0) && (centerlen > 2))
+            while ((center[i].BrightState == 0) && (center[inext].BrightState == 0) && (centerlen > 2))
             {
                 if (inext < centerlen - 1)
                 {
@@ -998,6 +998,7 @@ void LearnBufInitial(void)
         flagdayone = 1;  // 第一天数据的标志位, 初始化为第1天
         AutoBrightnessSet.Item.flagdayone = flagdayone;
         Flagnewmodel = 0; //下载模型时标志位，新下载时=1
+        SystemUTCtimer0 = 0;
     }else{
         for (int i = 0; i < BUFLOGMAXSIZE; i++)
         {
