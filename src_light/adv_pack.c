@@ -959,9 +959,9 @@ void adv_paircmd_handle(wiced_bt_device_address_t remote_mac, uint16_t cmd, uint
             LightConfig.fristpair =  CONFIG_PAIRED;
             LightSniffer(160,2,1,70,1);
             //TODO 回复遥控器确认响应
-            // p_adv_data->pair_stata = ADV_PARILOAD_SPAIREDACK;
-            // memcpy(p_adv_data->dst_mac, remote_mac, sizeof(wiced_bt_device_address_t));
-            // adv_vendor_send_cmd(ADV_CMD_PARI, (uint8_t *)p_adv_data, sizeof(mesh_btn_pairload_t), 0);
+            p_adv_data->pair_stata = ADV_PARILOAD_SPAIREDACK;
+            memcpy(p_adv_data->dst_mac, remote_mac, sizeof(wiced_bt_device_address_t));
+            adv_vendor_send_cmd(ADV_CMD_PARI, (uint8_t *)p_adv_data, sizeof(mesh_btn_pairload_t), 0);
             if (index == REMOTE_MAX_NUM)
             {
                 uint16_t len_res, len_write;

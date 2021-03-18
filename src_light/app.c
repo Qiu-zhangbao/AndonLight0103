@@ -275,6 +275,7 @@ void PowerStataCheckIntterupt(void* user_data, uint8_t pin, uint32_t value)
 #if (CHECK_POWEROFF_VALUE) && (!CHECK_POWEROFF_INTT)
 void powerTestTimerCb(uint32_t para)
 {
+    extern void mesh_app_gatt_is_disconnected(void);
     static uint16_t PowerOffCnt = 0;
     static uint16_t PowerDeltaCnt = 0;
     static int16_t lastPowerValue = 0;
@@ -366,6 +367,16 @@ void powerTestTimerCb(uint32_t para)
             //StoreConfigImmediately();
         }
         LOG_DEBUG("LightToggle for Power!!!!!\n");
+    }
+
+    if (PowerOffCnt>50)
+    {
+        if(mesh_app_gatt_is_connected())
+        {
+            mesh_app_gatt_is_disconnected();
+            LOG_DEBUG("gatt_is_disconnected\n");
+        }
+        PowerOffCnt=0;
     }
 
     // testpowercnt++;
