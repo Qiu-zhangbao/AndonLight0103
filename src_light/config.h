@@ -134,7 +134,7 @@ extern wiced_bt_cfg_settings_t mywiced_bt_cfg_settings;
 #define DEFAULT_LIGHTNESS_CONFIG { \
     .lightingOn = 1,               \
     .lightnessLevel = CONFIG_DEFAULT_BRIGHTNESS,       \
-    .lightnessCTL = 4500,          \
+    .lightnessCTL = 32768,          \
     .Lightontime  = 0,              \
     .offdelayset  = CONFIG_DEFAULT_DELAYSET,           \
     .offdelaytime = CONFIG_DEFAULT_OFFDELAY,           \

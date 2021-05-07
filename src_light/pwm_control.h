@@ -24,4 +24,5 @@
 
 extern void led_controller_initial(void);
 extern void led_controller_status_update(uint8_t onoff, uint16_t level, uint16_t temperature);
+void led_controller_status_update_angle(uint8_t onoff, uint16_t level, uint16_t angle);
 // extern void pwm_set_brighness_level(uint16_t brightness_level);
