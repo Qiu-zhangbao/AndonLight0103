@@ -873,6 +873,7 @@ void mesh_application_init(void)
 #else
     if (mesh_nvram_access(WICED_FALSE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result) != 16)
     {
+        wiced_bt_device_address_t defaultaddr = {0xC0,0x00,0x00,0x00,0x00,0x00};
         // This is the first time for this app is running after the factory reset.
         // Check if UUID data have been configured in the factory
         //if (wiced_bt_factory_config_read(WICED_BT_FACTORY_CONFIG_ITEM_UUID, init.device_uuid, sizeof(init.device_uuid)) != sizeof(init.device_uuid))
@@ -882,17 +883,21 @@ void mesh_application_init(void)
             WICED_BT_TRACE("failed to read UUID \n");
         }
         // Save UUID in the NVRAM for future use
-        len = mesh_nvram_access(WICED_TRUE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);
-        if (16 != len)
+        if( (0 != memcmp(init.device_uuid,defaultaddr,sizeof(wiced_bt_device_address_t))) 
+            || (0 != memcmp(init.device_uuid+10,defaultaddr,sizeof(wiced_bt_device_address_t))) )
         {
-            WICED_BT_TRACE("failed to save UUID result:%x UUID:\n", result);
+            len = mesh_nvram_access(WICED_TRUE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);
+            if (16 != len)
+            {
+                WICED_BT_TRACE("failed to save UUID result:%x UUID:\n", result);
+            }
+            // len = mesh_nvram_access(WICED_FALSE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);
+            // if (len != 16){
+            //     WICED_BT_TRACE_ARRAY(init.device_uuid, 16, "init2 UUID: %d len: %d\n", __LINE__,len);
+            //     mesh_application_gen_uuid(init.device_uuid);
+            //     WICED_BT_TRACE_ARRAY(init.device_uuid, 16, "init2 UUID: %d \n", __LINE__);
+            // }
         }
-        // len = mesh_nvram_access(WICED_FALSE, NVRAM_ID_LOCAL_UUID, init.device_uuid, 16, &result);
-        // if (len != 16){
-        //     WICED_BT_TRACE_ARRAY(init.device_uuid, 16, "init2 UUID: %d len: %d\n", __LINE__,len);
-        //     mesh_application_gen_uuid(init.device_uuid);
-        //     WICED_BT_TRACE_ARRAY(init.device_uuid, 16, "init2 UUID: %d \n", __LINE__);
-        // }
 
     }
 #ifdef STATIC_OOB_DATA
