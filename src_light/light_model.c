@@ -39,7 +39,7 @@
 
 
 #define COUNTDOWNTIMERLEN        250         //单位ms 倒计时单位为s，所以此数值必须能被1000整除
-
+#define LCDTIMERLEN       200 
 #define LIGHT_TIMER_UINT  (LIGHT_TIMER_CB_LENGTH>10?(LIGHT_TIMER_CB_LENGTH/10):1*(10/LIGHT_TIMER_CB_LENGTH))  
 
 
@@ -96,6 +96,7 @@ extern void andonServerSendLightStatus(void);
 extern void andonServerSendLightCountDownStatus(void);
 void MorseCodeTimerCb(TIMER_PARAM_TYPE parameter);
 void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter);
+void lcd_num_Timer_cb(TIMER_PARAM_TYPE parameter);
 int8_t uint16_to_percentage(uint16_t value);
 uint16_t percentage_to_uint16(int8_t percentage);
 int32_t light_flashing(int32_t tick, int32_t period, int32_t initiate, int32_t final);
@@ -103,8 +104,8 @@ int32_t light_sniffer(int32_t tick, int32_t period, int32_t initiate, int32_t fi
 int32_t light_flashandsniffer(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 int32_t brightness_procedure(int32_t tick, int32_t period, int32_t initiate, int32_t final);
-
-
+uint8_t lcd_cutdown=0,clar_flag=0;
+#define GPIO_LCD_LIGHT    WICED_P26
 static int32_t flashandsniffer_allcycle,flashandsniffer_flashcycle,flashandsniffer_sniffercycle; //flashandsniffer_times;
 static int32_t flashandsniffer_flashtimes,flashandsniffer_sniffertimes; 
 static uint16_t flashandsniffer_flashtfrist,flashandsniffer_flash_fristtime,flashandsniffer_snifferfrist; 
@@ -131,6 +132,7 @@ LightConfig_def LightConfig = DEFAULT_LIGHTNESS_CONFIG;
 
 static wiced_timer_t transitionTimer;
 static wiced_timer_t delay_count_Timer_500ms;
+static wiced_timer_t lcd_num_Timer_50ms;
 static wiced_bool_t  lighttimeraienable = WICED_TRUE;
 static wiced_bool_t  lightdelayflag = WICED_FALSE;
 
@@ -139,6 +141,11 @@ LightConfig_def currentCfg;
 uint8_t transition_time = DEFAULT_TRANSITION_TIME;
 
 uint16_t turnOffTimeCnt = 0;  
+
+extern void i2c_init(void);
+extern void HT16C21_Init(void);
+extern void HT16C21_DISPLAY_CLEAR(void);
+extern void HT16C21_DISPLAY_DATA(uint8_t value, uint8_t double_zero);
 
 int32_t liner_transfer(int32_t tick, int32_t period, int32_t initiate, int32_t final)
 {
@@ -396,6 +403,17 @@ void ligntModelAppTimerCb(void)
             turnOffTimeCnt = 300;
         }
     }
+    if (clar_flag)
+    {
+        lcd_cutdown++;
+        if (lcd_cutdown>3)
+        {
+            clar_flag=0;
+            lcd_cutdown=0;
+           HT16C21_DISPLAY_CLEAR();
+           wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+        }
+    }
 
     /*//未处于倒计时过程中
     if(TurnOnOffDelay.flag == TURNONOFFDELAYRUNING){
@@ -627,6 +645,10 @@ void LightModelInitial(uint8_t onoff)
     {
         wiced_init_timer(&delay_count_Timer_500ms, delay_count_Timer_cb, 0, WICED_MILLI_SECONDS_PERIODIC_TIMER);
     }
+    if (!wiced_is_timer_in_use(&lcd_num_Timer_50ms))
+    {
+        wiced_init_timer(&lcd_num_Timer_50ms, lcd_num_Timer_cb, 0, WICED_MILLI_SECONDS_PERIODIC_TIMER);
+    }
     morsecodedisplay = WICED_FALSE;
     LOG_DEBUG("Light Init 1: %d %d %d\n", currentCfg.lightingOn, LightConfig.lightnessLevel, LightConfig.lightnessCTL);
     // wiced_init_timer(&transitionTimer, lightModelCb, 0, WICED_MILLI_SECONDS_PERIODIC_TIMER);
@@ -666,8 +688,13 @@ void LightModelInitial(uint8_t onoff)
     LightConfig.fwupgrade = 0;
     systimerAddAppTimer(ligntModelAppTimerCb);
     // adv_pack_init();
-    LOG_DEBUG("Light Init end: %d %d %d\n", currentCfg.lightingOn, LightConfig.lightnessLevel, LightConfig.lightnessCTL);
+    i2c_init();
+    HT16C21_Init();
+    HT16C21_DISPLAY_CLEAR();
+    wiced_hal_gpio_select_function(GPIO_LCD_LIGHT,WICED_GPIO);
+    wiced_hal_gpio_configure_pin(GPIO_LCD_LIGHT,( GPIO_OUTPUT_ENABLE | GPIO_PULL_DOWN ),GPIO_PIN_OUTPUT_LOW);
 
+    LOG_DEBUG("Light Init end: %d %d %d\n", currentCfg.lightingOn, LightConfig.lightnessLevel, LightConfig.lightnessCTL);
 }
 
 int32_t transt_to_period(uint8_t t)
@@ -817,6 +844,18 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
 // turn light on/off
 void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
 {
+    if (onoff)
+    {
+        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
+        clar_flag=1;
+        lcd_cutdown=0;
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+    }
+    else
+    {
+        HT16C21_DISPLAY_CLEAR();
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+    }
 #if LIGHTAI == configLIGHTAIWYZEMODE
         StTimeInfo sysClock;
         systimerClock_t *ptrsysClock;
@@ -1017,6 +1056,22 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
 
     LightConfig.lightingOn = !currentCfg.lightingOn;
     ctx.PrePowerTick = 0xFFFF;
+
+    if (LightConfig.lightingOn==1)
+    {
+        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
+        clar_flag=1;
+        lcd_cutdown=0;
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+    }
+    else
+    {
+        HT16C21_DISPLAY_CLEAR();
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+    }
+    
+
+    
 
     // if(LightConfig.lightingOn == TurnOnOffDelay.onoff){
         TurnOnOffDelay.remaintime = 0;
@@ -1441,6 +1496,13 @@ void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t
     }
 
     LightConfig.lightnessLevel = percentage_to_uint16(percetange);
+    if (LightConfig.lightnessLevel!=0)
+    {
+        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
+        clar_flag=1;
+        lcd_cutdown=0;
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+    }
 #if LIGHTAI == configLIGHTAIANDONMODE
     BrightModelLearning(SystemUTCtimer0, percetange);
     AutoBrightnessSet.Item.AutoBrightnessSetSave = 1;
@@ -1522,6 +1584,10 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
             led_controller_status_update(1, LightConfig.lightnessLevel, LightConfig.lightnessCTL);
         }
     }
+    // if (!wiced_is_timer_in_use(&lcd_num_Timer_50ms))
+    // {
+    //     wiced_start_timer(&lcd_num_Timer_50ms, LCDTIMERLEN);
+    // }
     morsecodedisplay = WICED_FALSE;
     lightdelayflag = WICED_FALSE;
     TurnOnOffDelay.flag = TURNONOFFDELAYSTOP;
@@ -1672,6 +1738,13 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
         //         LightConfig.lightnessLevel -= delta_raw;
         //     }
         // }
+    }
+    if (LightConfig.lightnessLevel!=0)
+    {
+        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
+        clar_flag=1;
+        lcd_cutdown=0;
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
     }
     LOG_DEBUG("Delata LightConfig.lightnessLevel: %d  \n",LightConfig.lightnessLevel);
 
@@ -1909,6 +1982,18 @@ void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter)
         TurnOnOffDelay.remaintime = 0;
     }
 
+}
+
+
+void lcd_num_Timer_cb(TIMER_PARAM_TYPE parameter)
+{
+    static uint16_t time=0;
+    time++;
+    if (time>3*20*LCDTIMERLEN)
+    {
+        wiced_stop_timer(&lcd_num_Timer_50ms);
+    }
+    HT16C21_DISPLAY_DATA(uint16_to_percentage(currentCfg.lightnessLevel),1);
 }
 
 void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)

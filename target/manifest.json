@@ -1,0 +1,9 @@
+{
+  "manifest": {
+    "firmware": {
+      "firmware_file": "AndonLight-20210508.dfu.bin",
+      "metadata_file": "metadata",
+      "firmware_id": "0408303101000604001A00"
+    }
+  }
+} 
