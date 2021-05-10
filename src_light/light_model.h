@@ -74,7 +74,6 @@ extern void LightFlashAndSniffer(Light_FlashAndSniffer_t);
 
 extern void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t delay);
 extern void LightModelDeltaBrightness(int8_t delta, uint8_t transitiontime, uint16_t delay);
-extern void LightModelDeltaAngle(int8_t delta, uint8_t transitiontime, uint16_t delay);
 extern void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay);
 extern void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay);  //添加reserved 使得灯动作函数参数格式统一：动作，变化时长，延时
 extern void LightModelTurnToggle(int8_t res, uint8_t transitiontime, uint16_t delay);

@@ -592,7 +592,6 @@ void LightUpdate(void)
 
     temp = currentCfg.lightnessLevel;
     //LOG_VERBOSE("LightUpdate duty = %d\n",temp*100/65535);
-    currentCfg.lightnessCTL = LightConfig.lightnessCTL;
     led_controller_status_update(currentCfg.lightingOn, currentCfg.lightnessLevel, currentCfg.lightnessCTL);
 }
 
@@ -1499,59 +1498,6 @@ void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t
     advRestartPair();
 }
 
-void LightModelDeltaAngle(int8_t delta_in, uint8_t transitiontime, uint16_t delay)
-{
-    int32_t delta_raw = 0;
-    int16_t delta;
-
-
-    LOG_DEBUG("Angle_Delata: %d  transitiontime: %d\n",delta_in,transitiontime);
-    if(delta_in == 0){
-        return;
-    }
-
-    if(delta_in > 49){
-        delta_in = 50;
-    }else if(delta_in < -49){
-        delta_in = -50;
-    }
-    delta = delta_in * 10;
-    if(delta > 100)
-    {
-        delta = 100;
-    }
-    else if(delta < -100)
-    {
-        delta = -100;
-    }
-    if(currentCfg.lightingOn != 0)
-    {
-        if (delta > 0)
-        {
-
-            delta_raw = percentage_to_uint16(delta);
-            delta_raw += currentCfg.lightnessCTL;
-            if (delta_raw > 65535)
-            delta_raw = 65535;
-
-        }
-        else
-        {
-
-            delta_raw = percentage_to_uint16(0-delta);
-            delta_raw = currentCfg.lightnessCTL-delta_raw;
-            if (delta_raw < 0)
-            delta_raw = 0;
-
-        }
-
-        LightConfig.lightnessCTL=delta_raw;
-        
-        LOG_DEBUG("currentCfg.lightnessCTL: %d\n",currentCfg.lightnessCTL);
-        StoreConfig();
-        LightUpdate();
-    }
-}
 void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t delay)
 {
     int32_t delta_raw = 0;
