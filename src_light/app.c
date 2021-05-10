@@ -281,13 +281,46 @@ void powerTestTimerCb(uint32_t para)
     static int16_t lastPowerValue = 0;
     static int16_t PowerValue = 0;
     static uint16_t PowerOffFlag = 0;
+    static uint16_t PersonIn = 0;
+    static uint16_t PersonOut = 0;
     // static  uint8_t powerOnCnt = 255;
+    
     
     PowerValue= wiced_hal_adc_read_voltage( CHANNEL_TO_MEASURE_DC_VOLT); 
     // LOG_DEBUG("PowerValue %d!!!!!\n",PowerValue);
     if(lastPowerValue == 0)
         lastPowerValue = PowerValue;
     //if((PowerValue < 2000) || ((lastPowerValue-PowerValue) > 40))
+
+    if(wiced_hal_gpio_get_pin_input_status(WICED_P27) ){
+        PersonIn++;
+        if(PersonIn > 2500/40){
+            PersonIn = 2500/40;
+        }
+        //当人体存在2s且灯未点亮时点灯
+        if((0 == LightConfig.lightingOn) && (PersonIn==2000/40))
+        {
+            LightModelTurn(1,0,0);
+        }
+        if(PersonIn>500/40){
+            PersonOut = 0;
+        }
+    }else{
+        PersonOut++;
+        if(PersonOut > 15*1000/40){
+            PersonOut = 151000/40;
+            PersonIn = 0;
+        }
+        //当人体离开三分钟且灯未关闭时关灯
+        if((LightConfig.lightingOn) && (PersonOut == 10*1000/40))
+        {
+            LightModelTurn(0,0,0);
+        }
+        if(PersonOut > 5*1000/40){
+            PersonIn = 0;
+        }
+    }
+
     if(PowerValue < 2000)
     {
         if(PowerValue < 2000)
@@ -589,204 +622,6 @@ void readTxPowerCallback(void *pdata)
     LOG_DEBUG("Ble TX Power %d  3.............\n",power->tx_power);
 }
 
-
-// const unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
-
-
-// typedef struct
-// {
-//     uint8_t* input_data_p;
-//     uint16_t input_len;
-// }input_data_t;
-
-
-// uint8_t* string_to_hexdata(char* string, uint8_t* len)
-// {
-//     uint8_t num_t[1000] = { 0 };
-//     uint8_t* num = NULL;
-//    // printf("\r\n\r\n");
-//    // printf("字符转换\r\n\r\n");
-//     *len = strlen(string) / 2;
-//     //printf("len0:%d\r\n\r\n", *len);
-//     num = malloc(*len);
-//     printf("string:%d\r\n\r\n", strlen(string));
-//     for (int k = 0;k < strlen(string);k++)
-//     {
-//         for (int j = 0;j < 16;j++)
-//         {
-//             if (string[k] == hextab[j])
-//             {
-//                 num_t[k] = j;
-//                 printf("%x", num_t[k]);
-//                 break;
-//             }
-//         }
-//     }
-//     printf("\r\n\r\n");
-//     for (int k = 0;k < strlen(string) / 2;k++)
-//     {
-//         *(num + k ) = num_t[k * 2] * 16 + num_t[k * 2+1];
-//     }
-//     return num;
-// }
-
-// void obfs(uint8_t* data, uint16_t len)
-// {
-//     uint32_t seed = data[1];
-
-//     for (int i = 2; i < len; i++)
-//     {
-//         seed = 214013 * seed + 2531011;
-//         data[i] ^= (seed >> 16) & 0xff;
-//     }
-// }
-
-// uint8_t Auth(uint8_t* data, uint16_t len)
-// {
-//     uint8_t result = data[0];
-
-//     for (int i = 1; i < len; i++)
-//     {
-//         result ^= data[i];
-//     }
-
-//     return result;
-// }
-
-// uint8_t* format_conversion(uint8_t* input, uint8_t input_len, uint8_t* output_len)
-// {
-//     uint8_t* p_data;
-//     uint16_t templen;
-
-//     p_data = NULL;
-//     templen = input_len + 1;  //增加一个字节标识有效内容的长度
-
-
-//     templen = (templen % 8 ? ((templen >> 3) + 1) << 3 : templen);
-
-
-//   /*  if (templen % 8 == 0)
-//     {
-//         templen = templen ;
-//         printf("len1:%d\r\n\r\n", templen);
-//     }
-//     else
-//     {
-
-//         templen = 8 * (templen / 8) + 8;
-//          printf("len2:%d\r\n\r\n", templen);
-//     }*/
-
-//     p_data = malloc(templen);
-   
-//     memset(p_data, 0, templen);
-//     p_data[0] = input_len;
-//     memcpy(p_data+1, input, input_len);
-//     free(input);
-//     *output_len = templen;
-//     return p_data;
-// }
-
-
-// uint8_t*  test(char* send_original_data, uint8_t* encryptkey)
-// {
-//     uint8_t* output = NULL;
-//     long unsigned int outlen = 0;
-
- 
-//     input_data_t sennd_data = { 0 };
-
-//     printf("\r\n\r\n");
-//     printf("-------------------------开始-----------------------\r\n\r\n");
-
-//     sennd_data.input_data_p = string_to_hexdata(send_original_data, &sennd_data.input_len);
-//     printf("原始输入数据:");
-//     for (int k = 0;k < sennd_data.input_len;k++)
-//     {
-//         printf(" %02x", *(sennd_data.input_data_p + k));
-//     }
-//     printf("\r\n\r\n");
-
-//     obfs(sennd_data.input_data_p, sennd_data.input_len);
-//     printf("after obfs:");
-//     for (int k = 0;k < sennd_data.input_len;k++)
-//     {
-//         printf(" %02x", *(sennd_data.input_data_p + k));
-//     }
-//     printf("\r\n\r\n");
-
-//     sennd_data.input_data_p[0] = Auth(sennd_data.input_data_p, sennd_data.input_len);
-//     printf("after auth:");
-//     for (int k = 0;k < sennd_data.input_len;k++)
-//     {
-//         printf(" %02x", *(sennd_data.input_data_p + k));
-//     }
-//     printf("\r\n\r\n");
-
-//     sennd_data.input_data_p = format_conversion(sennd_data.input_data_p, sennd_data.input_len, &sennd_data.input_len);
-//     printf("format conversion:");
-//     for (int k = 0;k < sennd_data.input_len;k++)
-//     {
-//         printf(" %02x", *(sennd_data.input_data_p + k));
-//     }
-//     printf("\r\n\r\n");
-
-//     printf("encryptkey:");
-//     for (int k = 0;k < 8;k++)
-//     {
-//         printf(" %02x", encryptkey[k]);
-//     }
-//     printf("\r\n\r\n");
-
-//     output = WYZE_F_xxtea_encrypt(sennd_data.input_data_p, sennd_data.input_len, encryptkey, &outlen, false);
-//     printf("加密后的数据长度：%d \r\n\r\n", outlen);
-//     printf("加密后的数据：");
-//     for (int k = 0;k < outlen;k++)
-//     {
-//         printf(" %02x", output[k]);
-//     }
-//     printf("\r\n\r\n");
-
-//     output = WYZE_F_xxtea_decrypt(output, sennd_data.input_len, encryptkey, &outlen, false);
-//     printf("解密后的数据长度%d \r\n\r\n", outlen);
-//     /*  memcpy(input_data.input_data_p, output + 1, outlen);*/
-//     printf("解密后的数据：");
-//     for (int k = 0;k < outlen;k++)
-//     {
-//         printf(" %02x", output[k]);
-//     }
-//     printf("\r\n\r\n");
-
-//     memcpy(sennd_data.input_data_p, output + 1, output[0]);
-//     printf("Auth: ");
-//     if (Auth(sennd_data.input_data_p, output[0]) != 0)
-//     {
-//         printf("Auth error!\r\n\r\n");
-//         return 0;
-//     }
-//     printf("Auth success!\r\n\r\n");
-
-
-//     obfs(sennd_data.input_data_p, sennd_data.input_len);
-//     printf("after obfs:");
-//     for (int k = 0;k < output[0];k++)
-//     {
-//         printf(" %02x", *(sennd_data.input_data_p + k));
-//     }
-//     printf("\r\n\r\n");
-
-//     printf("\r\n\r\n");
-//     printf("-------------------------结束-----------------------\r\n\r\n");
-
-//     return sennd_data.input_data_p;
-// }
-
-
-void test_DH(void)
-{
-
-
-}
 void mesh_node_app_init(wiced_bool_t is_provisioned)
 {
     extern int  mesh_core_version_info();
@@ -795,7 +630,8 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
         wiced_init_timer(&powerCheckIntteruptDisableTimer,powerCheckIntteruptDisableTimerCb,0,WICED_MILLI_SECONDS_PERIODIC_TIMER);
     #endif 
     // #endif
-
+    wiced_hal_gpio_select_function(WICED_P27,WICED_GPIO);
+    wiced_hal_gpio_configure_pin(WICED_P27,( GPIO_INPUT_ENABLE | GPIO_PULL_DOWN ),GPIO_PIN_OUTPUT_LOW);
     wiced_update_cpu_clock(WICED_TRUE, WICED_CPU_CLK_96MHZ);
     LOG_VERBOSE("mesh_app_init is_provisioned: %d\n", is_provisioned);
     
@@ -943,8 +779,6 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
         wiced_init_timer(&powerTestTimer,powerTestTimerCb,0,WICED_MILLI_SECONDS_PERIODIC_TIMER);
         wiced_start_timer(&powerTestTimer,40);
     #endif
-
-    test_DH();
 }
 
 
