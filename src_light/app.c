@@ -307,16 +307,16 @@ void powerTestTimerCb(uint32_t para)
         }
     }else{
         PersonOut++;
-        if(PersonOut > 4*60*1000/40){
-            PersonOut = 4*60*1000/40;
+        if(PersonOut > 15*1000/40){
+            PersonOut = 151000/40;
             PersonIn = 0;
         }
         //当人体离开三分钟且灯未关闭时关灯
-        if((LightConfig.lightingOn) && (PersonOut == 3*60*1000/40))
+        if((LightConfig.lightingOn) && (PersonOut == 10*1000/40))
         {
             LightModelTurn(0,0,0);
         }
-        if(PersonOut > 1*60*1000/40){
+        if(PersonOut > 5*1000/40){
             PersonIn = 0;
         }
     }
@@ -631,7 +631,7 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
     #endif 
     // #endif
     wiced_hal_gpio_select_function(WICED_P27,WICED_GPIO);
-    wiced_hal_gpio_configure_pin(WICED_P27,( GPIO_INPUT_ENABLE | GPIO_PULL_UP ),GPIO_PIN_OUTPUT_LOW);
+    wiced_hal_gpio_configure_pin(WICED_P27,( GPIO_INPUT_ENABLE | GPIO_PULL_DOWN ),GPIO_PIN_OUTPUT_LOW);
     wiced_update_cpu_clock(WICED_TRUE, WICED_CPU_CLK_96MHZ);
     LOG_VERBOSE("mesh_app_init is_provisioned: %d\n", is_provisioned);
     
