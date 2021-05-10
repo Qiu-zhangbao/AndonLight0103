@@ -410,8 +410,9 @@ void ligntModelAppTimerCb(void)
         {
             clar_flag=0;
             lcd_cutdown=0;
-           HT16C21_DISPLAY_CLEAR();
-           wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+            HT16C21_DISPLAY_CLEAR();
+            wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+            LOG_DEBUG("lcd_close \n");
         }
     }
 
@@ -844,18 +845,6 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
 // turn light on/off
 void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
 {
-    if (onoff)
-    {
-        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
-        clar_flag=1;
-        lcd_cutdown=0;
-        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
-    }
-    else
-    {
-        HT16C21_DISPLAY_CLEAR();
-        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
-    }
 #if LIGHTAI == configLIGHTAIWYZEMODE
         StTimeInfo sysClock;
         systimerClock_t *ptrsysClock;
@@ -998,6 +987,25 @@ void LightModelTurn(int8_t onoff, uint8_t transition, uint16_t delay)
         }
         ctx.period = ctx.period/LIGHT_TIMER_UINT;
     }
+
+    if (onoff)
+    {
+        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
+        clar_flag=1;
+        lcd_cutdown=0;
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+        LOG_DEBUG("lcd_open \n");
+    }
+    else
+    {
+        clar_flag=0;
+        lcd_cutdown=0;
+        HT16C21_DISPLAY_CLEAR();
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+        LOG_DEBUG("lcd_close \n");
+    }
+
+
     {
 #if LIGHTAI == configLIGHTAIANDONMODE
         BrightModelLearning(SystemUTCtimer0,onoff?uint16_to_percentage(LightConfig.lightnessLevel):0);
@@ -1057,17 +1065,21 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
     LightConfig.lightingOn = !currentCfg.lightingOn;
     ctx.PrePowerTick = 0xFFFF;
 
-    if (LightConfig.lightingOn==1)
+    if (LightConfig.lightingOn)
     {
         HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
         clar_flag=1;
         lcd_cutdown=0;
         wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+        LOG_DEBUG("lcd_open \n");
     }
     else
     {
+        clar_flag=0;
+        lcd_cutdown=0;
         HT16C21_DISPLAY_CLEAR();
         wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+        LOG_DEBUG("lcd_close \n");
     }
     
 
@@ -1400,6 +1412,22 @@ void LightModelToggleForPowerOff(uint8_t transitiontime, uint16_t delay, uint16_
     }
     ctx.PreLightnessLevel = LightConfig.lightnessLevel;
     
+    if (LightConfig.lightingOn)
+    {
+        HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
+        clar_flag=1;
+        lcd_cutdown=0;
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+        LOG_DEBUG("lcd_open \n");
+    }
+    else
+    {
+        clar_flag=0;
+        lcd_cutdown=0;
+        HT16C21_DISPLAY_CLEAR();
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+        LOG_DEBUG("lcd_close \n");
+    }
 #if LIGHTAI == configLIGHTAIANDONMODE
     BrightModelLearning(SystemUTCtimer0,LightConfig.lightingOn?uint16_to_percentage(LightConfig.lightnessLevel):0);
     AutoBrightnessSet.Item.AutoBrightnessSetSave = 1;
@@ -1496,13 +1524,24 @@ void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t
     }
 
     LightConfig.lightnessLevel = percentage_to_uint16(percetange);
-    if (LightConfig.lightnessLevel!=0)
+
+    if (uint16_to_percentage(LightConfig.lightnessLevel)>0 && LightConfig.lightingOn==1)
     {
         HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
         clar_flag=1;
         lcd_cutdown=0;
         wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+        LOG_DEBUG("lcd_open \n");
     }
+    else
+    {
+        clar_flag=0;
+        lcd_cutdown=0;
+        HT16C21_DISPLAY_CLEAR();
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+        LOG_DEBUG("lcd_close \n");
+    }
+    
 #if LIGHTAI == configLIGHTAIANDONMODE
     BrightModelLearning(SystemUTCtimer0, percetange);
     AutoBrightnessSet.Item.AutoBrightnessSetSave = 1;
@@ -1739,13 +1778,24 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
         //     }
         // }
     }
-    if (LightConfig.lightnessLevel!=0)
+ 
+    if (uint16_to_percentage(LightConfig.lightnessLevel)>0 && LightConfig.lightingOn==1)
     {
         HT16C21_DISPLAY_DATA(uint16_to_percentage(LightConfig.lightnessLevel),0);
         clar_flag=1;
         lcd_cutdown=0;
         wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,1 );
+        LOG_DEBUG("lcd_open \n");
     }
+    else
+    {
+        clar_flag=0;
+        lcd_cutdown=0;
+        HT16C21_DISPLAY_CLEAR();
+        wiced_hal_gpio_set_pin_output( GPIO_LCD_LIGHT,0 );
+        LOG_DEBUG("lcd_close \n");
+    }
+    
     LOG_DEBUG("Delata LightConfig.lightnessLevel: %d  \n",LightConfig.lightnessLevel);
 
 #if ANDON_LIGHT_LOG_ENABLE
@@ -1987,13 +2037,8 @@ void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter)
 
 void lcd_num_Timer_cb(TIMER_PARAM_TYPE parameter)
 {
-    static uint16_t time=0;
-    time++;
-    if (time>3*20*LCDTIMERLEN)
-    {
-        wiced_stop_timer(&lcd_num_Timer_50ms);
-    }
-    HT16C21_DISPLAY_DATA(uint16_to_percentage(currentCfg.lightnessLevel),1);
+   
+   
 }
 
 void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)
