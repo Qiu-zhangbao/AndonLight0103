@@ -257,26 +257,26 @@ void lightModelCb(TIMER_PARAM_TYPE parameter)
         {
             LOG_VERBOSE("ctx.initiate %d  ctx.final %d lightnessLevel %d\n",ctx.initiate, ctx.final, LightConfig.lightnessLevel);
         }
-        if((!ctx.initiate) && (ctx.final) && (ctx.PreLightnessLevel < 17309))
-        {
-            //if((ctx.PrePowerTick == 0xFFFF) && (ctx.period > 2*100/LIGHT_TIMER_CB_LENGTH))
-            if(ctx.PrePowerTick == 0xFFFF)
-            {
-                if(turnOffTimeCnt < 5)
-                ctx.PrePowerTick = 0;
-                if(turnOffTimeCnt >4 && turnOffTimeCnt <7)
-                ctx.PrePowerTick = 1*50/LIGHT_TIMER_CB_LENGTH;
-                if(turnOffTimeCnt >6 && turnOffTimeCnt<17)
-                ctx.PrePowerTick = 1*100/LIGHT_TIMER_CB_LENGTH;
-                if(turnOffTimeCnt >16 && turnOffTimeCnt<90)
-                ctx.PrePowerTick = 1*150/LIGHT_TIMER_CB_LENGTH;
-                if(turnOffTimeCnt > 89)
-                ctx.PrePowerTick = 2*100/LIGHT_TIMER_CB_LENGTH; 
-                ctx.period += ctx.PrePowerTick;
-                ctx.PrePowerTick += 1;
-            }
-        }
-        else
+        // if((!ctx.initiate) && (ctx.final) && (ctx.PreLightnessLevel < 17309))
+        // {
+        //     //if((ctx.PrePowerTick == 0xFFFF) && (ctx.period > 2*100/LIGHT_TIMER_CB_LENGTH))
+        //     if(ctx.PrePowerTick == 0xFFFF)
+        //     {
+        //         if(turnOffTimeCnt < 5)
+        //         ctx.PrePowerTick = 0;
+        //         if(turnOffTimeCnt >4 && turnOffTimeCnt <7)
+        //         ctx.PrePowerTick = 1*50/LIGHT_TIMER_CB_LENGTH;
+        //         if(turnOffTimeCnt >6 && turnOffTimeCnt<17)
+        //         ctx.PrePowerTick = 1*100/LIGHT_TIMER_CB_LENGTH;
+        //         if(turnOffTimeCnt >16 && turnOffTimeCnt<90)
+        //         ctx.PrePowerTick = 1*150/LIGHT_TIMER_CB_LENGTH;
+        //         if(turnOffTimeCnt > 89)
+        //         ctx.PrePowerTick = 2*100/LIGHT_TIMER_CB_LENGTH; 
+        //         ctx.period += ctx.PrePowerTick;
+        //         ctx.PrePowerTick += 1;
+        //     }
+        // }
+        // else
         {
             ctx.PrePowerTick = 0;
         }
@@ -1637,7 +1637,7 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
             //     }
             // }
             if(delta != 100){
-                delta = delta + 1 - deltastep;
+                delta = delta + 2 - deltastep;
             }
             delta_raw = percentage_to_uint16(delta);
             // if(delta_in == 1){
@@ -1655,7 +1655,7 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
         if (currentCfg.lightingOn == 0)
         {
             //currentCfg.lightingOn = 1;
-            currentCfg.lightnessLevel = 656;
+            currentCfg.lightnessLevel = 656*2;
         }
 
         // if (LightConfig.lightingOn == 0)
@@ -1682,9 +1682,9 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
                 //旋转到最后一档亮度&当前亮度>1%，则最低亮度置为1% 
                 // if( ((delta_in == -1) || (delta_in == -50) || (currentCfg.lightnessLevel < (delta_raw+percentage_to_uint16(deltastep)))) 
                 //     && (uint16_to_percentage(currentCfg.lightnessLevel) > 1))
-                if(uint16_to_percentage(currentCfg.lightnessLevel) > 1)
+                if(uint16_to_percentage(currentCfg.lightnessLevel) > 2)
                 {
-                    LightConfig.lightnessLevel = percentage_to_uint16(1);
+                    LightConfig.lightnessLevel = percentage_to_uint16(2);
                     if(LightConfig.lightingOn == 0){
                         LightConfig.lightingOn = 1;
                     }

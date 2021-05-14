@@ -460,11 +460,11 @@ void pwm_set(uint16_t level)
     {
         pwm_config.toggle_count = pwm_config.init_count+2*PWM_INP_CLK_IN_HZ/1000000;
     }
-    //PWM占空比最小为1%
-    // if(pwm_config.toggle_count < (pwm_config.init_count+PWM_UBOUND/100))
-    // {
-    //     pwm_config.toggle_count = pwm_config.init_count + PWM_UBOUND/100;
-    // }
+    // PWM占空比最小为1%
+    if(pwm_config.toggle_count < (pwm_config.init_count+PWM_UBOUND/100))
+    {
+        pwm_config.toggle_count = pwm_config.init_count + PWM_UBOUND/100;
+    }
 
     //LOG_VERBOSE("init: %d toggle: %d diff: %d \n", pwm_config.init_count, pwm_config.toggle_count, pwm_config.toggle_count - pwm_config.init_count);
     
@@ -552,10 +552,10 @@ void pwm_set1(uint16_t level)
         pwm_config.toggle_count = pwm_config.init_count+2*PWM_INP_CLK_IN_HZ/1000000;
     }
     //PWM占空比最小为1%
-    // if(pwm_config.toggle_count < (pwm_config.init_count+PWM_UBOUND/100))
-    // {
-    //     pwm_config.toggle_count = pwm_config.init_count + PWM_UBOUND/100;
-    // }
+    if(pwm_config.toggle_count < (pwm_config.init_count+PWM_UBOUND/100))
+    {
+        pwm_config.toggle_count = pwm_config.init_count + PWM_UBOUND/100;
+    }
 
     //LOG_VERBOSE("init: %d toggle: %d diff: %d \n", pwm_config.init_count, pwm_config.toggle_count, pwm_config.toggle_count - pwm_config.init_count);
     
