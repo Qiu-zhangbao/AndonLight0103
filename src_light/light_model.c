@@ -1914,7 +1914,7 @@ void delay_count_Timer_cb(TIMER_PARAM_TYPE parameter)
 void lightSetDelayOnOffTimer(uint8_t onoff, uint16_t delaytime)
 {
     advRestartPair();
-    if(TurnOnOffDelay.flag != TURNONOFFDELAYSTOP){
+    if((TurnOnOffDelay.flag != TURNONOFFDELAYSTOP) || (onoff==LightConfig.lightingOn) ){
         return;
     }
     lightdelayflag = WICED_FALSE;
@@ -1945,7 +1945,7 @@ void lightGetDelayOnOffTimer(uint8_t *onoff, uint16_t *settime, uint16_t *remain
         TurnOnOffDelay.remaintime == 0;
     }
     *remaintime = (TurnOnOffDelay.remaintime+1)/(1000/COUNTDOWNTIMERLEN);
-    if(TurnOnOffDelay.remaintime == 0){
+    if((TurnOnOffDelay.remaintime == 0 ) || (onoff==LightConfig.lightingOn)){
         *onoff = 3;
     }else{
         *onoff = TurnOnOffDelay.onoff;
