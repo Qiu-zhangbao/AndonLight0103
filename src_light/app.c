@@ -284,40 +284,45 @@ void powerTestTimerCb(uint32_t para)
     static uint16_t PersonIn = 0;
     static uint16_t PersonOut = 0;
     // static  uint8_t powerOnCnt = 255;
+    static uint32_t sec=0;
     
+    sec++;
     
     PowerValue= wiced_hal_adc_read_voltage( CHANNEL_TO_MEASURE_DC_VOLT); 
     // LOG_DEBUG("PowerValue %d!!!!!\n",PowerValue);
     if(lastPowerValue == 0)
         lastPowerValue = PowerValue;
     //if((PowerValue < 2000) || ((lastPowerValue-PowerValue) > 40))
-
-    if(wiced_hal_gpio_get_pin_input_status(WICED_P27) ){
-        PersonIn++;
-        if(PersonIn > 2500/40){
-            PersonIn = 2500/40;
-        }
-        //当人体存在2s且灯未点亮时点灯
-        if((0 == LightConfig.lightingOn) && (PersonIn==2000/40))
-        {
-            LightModelTurn(1,0,0);
-        }
-        if(PersonIn>500/40){
-            PersonOut = 0;
-        }
-    }else{
-        PersonOut++;
-        if(PersonOut > 4*60*1000/40){
-            PersonOut = 4*60*1000/40;
-            PersonIn = 0;
-        }
-        //当人体离开三分钟且灯未关闭时关灯
-        if((LightConfig.lightingOn) && (PersonOut == 3*60*1000/40))
-        {
-            LightModelTurn(0,0,0);
-        }
-        if(PersonOut > 1*60*1000/40){
-            PersonIn = 0;
+    if(sec>2000/40)
+    {
+        sec=2000/40;
+        if(wiced_hal_gpio_get_pin_input_status(WICED_P27) ){
+            PersonIn++;
+            if(PersonIn > 2500/40){
+                PersonIn = 2500/40;
+            }
+            //当人体存在2s且灯未点亮时点灯
+            if((0 == LightConfig.lightingOn) && (PersonIn==120/40))
+            {
+                LightModelTurn(1,0,0);
+            }
+            if(PersonIn>80/40){
+                PersonOut = 0;
+            }
+        }else{
+            PersonOut++;
+            if(PersonOut > 4*60*1000/40){
+                PersonOut = 4*60*1000/40;
+                PersonIn = 0;
+            }
+            //当人体离开三分钟且灯未关闭时关灯
+            if((LightConfig.lightingOn) && (PersonOut == 3*60*1000/40))
+            {
+                LightModelTurn(0,0,0);
+            }
+            if(PersonOut > 1*60*1000/40){
+                PersonIn = 0;
+            }
         }
     }
 
