@@ -272,6 +272,23 @@ void PowerStataCheckIntterupt(void* user_data, uint8_t pin, uint32_t value)
 }
 #endif
 
+
+#define N 5 
+uint16_t value_buf[N]={0};
+uint16_t i=0;
+uint16_t filter(uint16_t value)
+{
+   uint16_t count;
+   uint32_t  sum=0;
+   value_buf[i++] = value;
+   if ( i == N )   i = 0;
+   for ( count=0;count<N;count++)
+      sum = value_buf[count];
+   return (sum/N);
+}
+
+
+
 #if (CHECK_POWEROFF_VALUE) && (!CHECK_POWEROFF_INTT)
 void powerTestTimerCb(uint32_t para)
 {
@@ -284,46 +301,76 @@ void powerTestTimerCb(uint32_t para)
     static uint16_t PersonIn = 0;
     static uint16_t PersonOut = 0;
     // static  uint8_t powerOnCnt = 255;
-    static uint32_t sec=0;
+    static uint16_t sec = 0;
+    static uint16_t leida_adcx_Filter=0;
+    static uint16_t leida_adcx_Filter_last=300;
     
-    sec++;
+    
     
     PowerValue= wiced_hal_adc_read_voltage( CHANNEL_TO_MEASURE_DC_VOLT); 
     // LOG_DEBUG("PowerValue %d!!!!!\n",PowerValue);
     if(lastPowerValue == 0)
         lastPowerValue = PowerValue;
-    //if((PowerValue < 2000) || ((lastPowerValue-PowerValue) > 40))
-    if(sec>2000/40)
+
+    leida_adcx_Filter=filter(wiced_hal_adc_read_voltage( ADC_INPUT_P0));
+
+    sec++;
+    if(sec>5000/40)
     {
-        sec=2000/40;
-        if(wiced_hal_gpio_get_pin_input_status(WICED_P27) ){
-            PersonIn++;
-            if(PersonIn > 2500/40){
-                PersonIn = 2500/40;
-            }
-            //当人体存在2s且灯未点亮时点灯
-            if((0 == LightConfig.lightingOn) && (PersonIn==120/40))
+        sec=5000/40;
+        LOG_DEBUG("mylib_abs:%d\n",mylib_abs(leida_adcx_Filter,leida_adcx_Filter_last));
+        if (mylib_abs(leida_adcx_Filter,leida_adcx_Filter_last)>50)
+        {
+            if(0 == LightConfig.lightingOn)
             {
-                LightModelTurn(1,0,0);
+                LightModelTurn(1,4,0);
             }
-            if(PersonIn>80/40){
-                PersonOut = 0;
-            }
-        }else{
+            PersonOut=0;
+        }
+        else
+        {
             PersonOut++;
-            if(PersonOut > 4*60*1000/40){
-                PersonOut = 4*60*1000/40;
-                PersonIn = 0;
+            if(PersonOut > 6*60*1000/40){
+                PersonOut = 6*60*1000/40;
             }
-            //当人体离开三分钟且灯未关闭时关灯
-            if((LightConfig.lightingOn) && (PersonOut == 3*60*1000/40))
+            //当人体离开5分钟且灯未关闭时关灯
+            if((LightConfig.lightingOn) && (PersonOut == 5*60*1000/40))
             {
-                LightModelTurn(0,0,0);
-            }
-            if(PersonOut > 1*60*1000/40){
-                PersonIn = 0;
+                LightModelTurn(0,4,0);
             }
         }
+        
+        leida_adcx_Filter_last=leida_adcx_Filter;
+        
+
+        // if(wiced_hal_gpio_get_pin_input_status(WICED_P27) ){
+        //     PersonIn++;
+        //     if(PersonIn > 2500/40){
+        //         PersonIn = 2500/40;
+        //     }
+        //     //当人体存在2s且灯未点亮时点灯
+        //     if((0 == LightConfig.lightingOn) && (PersonIn==120/40))
+        //     {
+        //         LightModelTurn(1,0,0);
+        //     }
+        //     if(PersonIn>80/40){
+        //         PersonOut = 0;
+        //     }
+        // }else{
+        //     PersonOut++;
+        //     if(PersonOut > 4*60*1000/40){
+        //         PersonOut = 4*60*1000/40;
+        //         PersonIn = 0;
+        //     }
+        //     //当人体离开三分钟且灯未关闭时关灯
+        //     if((LightConfig.lightingOn) && (PersonOut == 3*60*1000/40))
+        //     {
+        //         LightModelTurn(0,0,0);
+        //     }
+        //     if(PersonOut > 1*60*1000/40){
+        //         PersonIn = 0;
+        //     }
+        // }
     }
 
     if(PowerValue < 2000)
@@ -635,8 +682,6 @@ void mesh_node_app_init(wiced_bool_t is_provisioned)
         wiced_init_timer(&powerCheckIntteruptDisableTimer,powerCheckIntteruptDisableTimerCb,0,WICED_MILLI_SECONDS_PERIODIC_TIMER);
     #endif 
     // #endif
-    wiced_hal_gpio_select_function(WICED_P27,WICED_GPIO);
-    wiced_hal_gpio_configure_pin(WICED_P27,( GPIO_INPUT_ENABLE | GPIO_PULL_UP ),GPIO_PIN_OUTPUT_LOW);
     wiced_update_cpu_clock(WICED_TRUE, WICED_CPU_CLK_96MHZ);
     LOG_VERBOSE("mesh_app_init is_provisioned: %d\n", is_provisioned);
     
