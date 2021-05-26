@@ -109,9 +109,9 @@ void led_controller_status_update(uint8_t onoff, uint16_t level, uint16_t temper
 void led_controller_status_update_angle(uint8_t onoff, uint16_t level, uint16_t angle)
 {
 #define s(x) ((x) ? "on" : "off")
-    LOG_DEBUG("LEVEL: %d\n", level);
-    LOG_DEBUG("temperature: %d\n", angle);
-    LOG_DEBUG("%s -> %s\n", s(last_onoff), s(onoff));
+    // LOG_DEBUG("LEVEL: %d\n", level);
+    // LOG_DEBUG("temperature: %d\n", angle);
+    // LOG_DEBUG("%s -> %s\n", s(last_onoff), s(onoff));
     if (onoff)
     {
         if (last_onoff != 1)
@@ -402,7 +402,7 @@ void pwm_set(uint16_t level)
 {
     pwm_config_t pwm_config;
 
-    LOG_DEBUG("PWM_SET in: %d\n", level);
+    //LOG_DEBUG("PWM_SET in: %d\n", level);
 
     // level = linner_adjust(level);
     // LOG_DEBUG("level: %d\n", level);
@@ -444,8 +444,8 @@ void pwm_set(uint16_t level)
     pwm_config.toggle_count = 65536 - (PWM_UBOUND - PWM(level));
 
     
-    LOG_DEBUG("pwm_config.init_count: %d\n", pwm_config.init_count);
-    LOG_DEBUG("pwm_config.toggle_count: %d\n", pwm_config.toggle_count);
+    // LOG_DEBUG("pwm_config.init_count: %d\n", pwm_config.init_count);
+    // LOG_DEBUG("pwm_config.toggle_count: %d\n", pwm_config.toggle_count);
     
     if(pwm_config.init_count > 65500)
     {
@@ -493,7 +493,7 @@ void pwm_set1(uint16_t level)
 {
     pwm_config_t pwm_config;
 
-    LOG_DEBUG("PWM_SET1 in: %d\n", level);
+    //LOG_DEBUG("PWM_SET1 in: %d\n", level);
 
     // level = linner_adjust(level);
     // LOG_DEBUG("level1: %d\n", level);
@@ -535,8 +535,8 @@ void pwm_set1(uint16_t level)
     pwm_config.toggle_count = 65536 - (PWM_UBOUND - PWM(level));
 
     
-    LOG_DEBUG("pwm_config.init_count1: %d\n", pwm_config.init_count);
-    LOG_DEBUG("pwm_config.toggle_count1: %d\n", pwm_config.toggle_count);
+    // LOG_DEBUG("pwm_config.init_count1: %d\n", pwm_config.init_count);
+    // LOG_DEBUG("pwm_config.toggle_count1: %d\n", pwm_config.toggle_count);
     
     if(pwm_config.init_count > 65500)
     {

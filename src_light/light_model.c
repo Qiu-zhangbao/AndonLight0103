@@ -91,7 +91,8 @@ const uint8_t Morsecodemask[][6] = {
     {4,1,0,1,1},
     {3,1,1,0},          //Z
 };
-
+//uint8_t angle_buffer[11]={0,32,54,66,74,79,83,86,90,94,100};
+uint8_t angle_buffer[11]={0,10,20,30,40,50,60,70,80,90,100};
 extern void andonServerSendLightStatus(void);
 extern void andonServerSendLightCountDownStatus(void);
 void MorseCodeTimerCb(TIMER_PARAM_TYPE parameter);
@@ -591,7 +592,7 @@ void LightUpdate(void)
     uint32_t temp;
 
     temp = currentCfg.lightnessLevel;
-    //LOG_VERBOSE("LightUpdate duty = %d\n",temp*100/65535);
+    //LOG_VERBOSE("LightUpdate duty = %d\n",temp*100/65535);  
     currentCfg.lightnessCTL = LightConfig.lightnessCTL;
     led_controller_status_update(currentCfg.lightingOn, currentCfg.lightnessLevel, currentCfg.lightnessCTL);
 }
@@ -1383,6 +1384,16 @@ int32_t brightness_procedure(int32_t tick, int32_t period, int32_t initiate, int
     return 0;
 }
 
+
+
+int32_t angle_procedure(int32_t tick, int32_t period, int32_t initiate, int32_t final)
+{
+    LightConfig.lightnessCTL = liner_transfer(tick, period, initiate, final);
+    LOG_DEBUG("LightConfig.lightnessLevel :%d\n",LightConfig.lightnessCTL);
+    LightUpdate();
+    return 0;
+}
+
 void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t delay)
 {
     lightdelayflag = WICED_FALSE;
@@ -1499,57 +1510,60 @@ void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t
     advRestartPair();
 }
 
+
+
+
 void LightModelDeltaAngle(int8_t delta_in, uint8_t transitiontime, uint16_t delay)
 {
-    int32_t delta_raw = 0;
-    int16_t delta;
-
-
+    static int8_t step=5;
+    transitiontime = 5;
     LOG_DEBUG("Angle_Delata: %d  transitiontime: %d\n",delta_in,transitiontime);
     if(delta_in == 0){
         return;
     }
-
-    if(delta_in > 49){
-        delta_in = 50;
-    }else if(delta_in < -49){
-        delta_in = -50;
-    }
-    delta = delta_in * 10;
-    if(delta > 100)
+    if(delta_in > 10)
     {
-        delta = 100;
+        delta_in = 10;
     }
-    else if(delta < -100)
+    else if(delta_in < -10)
     {
-        delta = -100;
+        delta_in = -10;
     }
+    //当前开灯
     if(currentCfg.lightingOn != 0)
     {
-        if (delta > 0)
-        {
+      
+        step += delta_in;
+        if (step > 10)
+        step = 10;
+        if (step < 0)
+        step = 0;
 
-            delta_raw = percentage_to_uint16(delta);
-            delta_raw += currentCfg.lightnessCTL;
-            if (delta_raw > 65535)
-            delta_raw = 65535;
-
-        }
-        else
-        {
-
-            delta_raw = percentage_to_uint16(0-delta);
-            delta_raw = currentCfg.lightnessCTL-delta_raw;
-            if (delta_raw < 0)
-            delta_raw = 0;
-
-        }
-
-        LightConfig.lightnessCTL=delta_raw;
-        
-        LOG_DEBUG("currentCfg.lightnessCTL: %d\n",currentCfg.lightnessCTL);
+        LightConfig.lightnessCTL=percentage_to_uint16(angle_buffer[step]);
+        LOG_DEBUG("LightConfig.lightnessCTL: %d ngle_buffer:%d delta_raw: %d \n",LightConfig.lightnessCTL,angle_buffer[step],step);
         StoreConfig();
-        LightUpdate();
+
+
+        if (wiced_is_timer_in_use(&transitionTimer))
+        {
+            wiced_stop_timer(&transitionTimer);
+            //wiced_deinit_timer(&transitionTimer);
+        }
+        transitiontime = 5;
+        ctx.anim = angle_procedure;
+        ctx.tick = 1;
+        ctx.period = transt_to_period(transitiontime)/LIGHT_TIMER_UINT;
+        ctx.initiate = currentCfg.lightnessCTL;
+        ctx.final = LightConfig.lightnessCTL;
+        ctx.PreLightnessLevel = LightConfig.lightnessLevel;
+        LOG_DEBUG("ctx.period: %d\n",ctx.period);
+        LOG_DEBUG("ctx.period: %d\n",ctx.period*LIGHT_TIMER_UINT);
+        LOG_DEBUG("ctx.initiate: %d\n",ctx.initiate);
+        LOG_DEBUG("ctx.final: %d\n",ctx.final);
+        LOG_VERBOSE("TransitionTimer Init \n");
+        
+        wiced_start_timer(&transitionTimer, LIGHT_TIMER_CB_LENGTH);
+
     }
 }
 void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t delay)

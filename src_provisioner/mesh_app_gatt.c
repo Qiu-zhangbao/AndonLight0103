@@ -1103,22 +1103,28 @@ static wiced_bt_gatt_status_t mesh_write_handler(uint16_t conn_id, wiced_bt_gatt
     if ((p_data->handle > HANDLE_ANDON_SERVICE) && (p_data->handle <= HANDLE_ANDON_SERVICE_WRITE_VAL))
     {
         
-         static uint16_t light=0,temp=0;
+         static uint16_t onoff=0,light=0,temp=0;
         // light = p_data->p_val[1]/16*1000+p_data->p_val[1]%16*100+p_data->p_val[2]/16*10+p_data->p_val[2]%16;
         // temp = p_data->p_val[3]/16*1000+p_data->p_val[3]%16*100+p_data->p_val[4]/16*10+p_data->p_val[4]%16;
+        onoff = p_data->p_val[0];
         light = p_data->p_val[1];
         temp = p_data->p_val[2];
         if(light<=100&&temp<=100&&p_data->p_val[0]!=0)
         {
-
+            LOG_DEBUG("onoff : %d\n", onoff);
             LOG_DEBUG("light : %d\n", light);
             LOG_DEBUG("temp : %d\n", temp);
-            //led_controller_status_update(p_data->p_val[0],light,temp);
-            LightModelSetBrightness(light,0,0);
+
+            currentCfg.lightingOn=LightConfig.lightingOn = 1;
+            currentCfg.lightnessLevel = LightConfig.lightnessLevel = percentage_to_uint16(light);
+            LightConfig.lightnessCTL = percentage_to_uint16(temp);
+            LightUpdate();
         }
         else
         {
-            LightModelSetBrightness(0,0,0);
+            LOG_DEBUG("onoff : %d\n", onoff);
+            LightModelTurnOff(0,0,0);
+
         }
         LOG_VERBOSE("Andon Server Write\n");
         result = AndonServerWriteHandle(conn_id, p_data);
