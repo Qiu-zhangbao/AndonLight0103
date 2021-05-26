@@ -273,21 +273,67 @@ void PowerStataCheckIntterupt(void* user_data, uint8_t pin, uint32_t value)
 #endif
 
 
-#define N 5 
-uint16_t value_buf[N]={0};
-uint16_t i=0;
+#define FILTER_ARR_NUM 10 
+#define ABS_ARR_NUM 10 
+
+uint16_t value_buf[FILTER_ARR_NUM]={0};
+uint16_t adcx_Filter_arr[ABS_ARR_NUM]={0};
+
+
 uint16_t filter(uint16_t value)
 {
-   uint16_t count;
-   uint32_t  sum=0;
-   value_buf[i++] = value;
-   if ( i == N )   i = 0;
-   for ( count=0;count<N;count++)
-      sum = value_buf[count];
-   return (sum/N);
+	static uint16_t i=0;
+	uint32_t  sum=0;
+	if ( i < FILTER_ARR_NUM )
+	{
+		value_buf[i++] = value;
+	}
+	else
+	{
+		for (uint8_t count=0;count<FILTER_ARR_NUM;count++)
+			value_buf[count]=value_buf[count+1];
+		value_buf[i-1]=value;
+	}
+
+	for (uint8_t count=0;count<FILTER_ARR_NUM;count++)
+		sum += value_buf[count];
+	return (sum/FILTER_ARR_NUM);
 }
 
+uint16_t find_max_min_abs(uint16_t value)
+{
+	uint16_t max=0;
+	uint16_t min=0;
 
+	static uint16_t j=0;
+	
+	if ( j < ABS_ARR_NUM )
+	{
+	   adcx_Filter_arr[j++] = value;
+	}
+	else
+	{
+	   for ( uint8_t count_1=0;count_1<ABS_ARR_NUM;count_1++)
+		adcx_Filter_arr[count_1]=adcx_Filter_arr[count_1+1];
+	   adcx_Filter_arr[j-1]=value;
+	}
+	
+	
+	max=adcx_Filter_arr[0];
+	min=adcx_Filter_arr[0];
+	for( uint8_t count=0;count<ABS_ARR_NUM;count++)
+	{
+		if(max<adcx_Filter_arr[count])
+			max=adcx_Filter_arr[count];
+	 
+		if(min>adcx_Filter_arr[count])
+			min=adcx_Filter_arr[count];
+	}
+
+	return max-min;
+}
+
+uint16_t close_time = 0;
 
 #if (CHECK_POWEROFF_VALUE) && (!CHECK_POWEROFF_INTT)
 void powerTestTimerCb(uint32_t para)
@@ -301,9 +347,16 @@ void powerTestTimerCb(uint32_t para)
     static uint16_t PersonIn = 0;
     static uint16_t PersonOut = 0;
     // static  uint8_t powerOnCnt = 255;
+
     static uint16_t sec = 0;
-    static uint16_t leida_adcx_Filter=0;
-    static uint16_t leida_adcx_Filter_last=300;
+    static uint16_t adcx=0;
+    static uint16_t adcx_Filter=0;
+    static uint16_t adc_abs=0;        
+    static uint16_t flag_close=1;     
+    static uint16_t lightingOn_last=0;   
+            
+            
+
     
     
     
@@ -312,14 +365,30 @@ void powerTestTimerCb(uint32_t para)
     if(lastPowerValue == 0)
         lastPowerValue = PowerValue;
 
-    leida_adcx_Filter=filter(wiced_hal_adc_read_voltage( ADC_INPUT_P0));
+    adcx_Filter=filter(wiced_hal_adc_read_voltage( ADC_INPUT_P0));
+    adc_abs=find_max_min_abs(adcx_Filter);
 
     sec++;
+    close_time++;
+
+    if(close_time > 11*1000/40)
+        close_time=11*1000/40;
     if(sec>5000/40)
     {
-        sec=5000/40;
-        LOG_DEBUG("mylib_abs:%d\n",mylib_abs(leida_adcx_Filter,leida_adcx_Filter_last));
-        if (mylib_abs(leida_adcx_Filter,leida_adcx_Filter_last)>50)
+        sec=6000/40;
+
+        if(lightingOn_last==1 && currentCfg.lightingOn == 0 && flag_close ==1)
+        {
+            close_time=0;
+            flag_close=0;
+        }
+
+        if( currentCfg.lightingOn == 1 )flag_close=1;
+   
+        lightingOn_last= currentCfg.lightingOn;
+
+        LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
+        if ((adc_abs>40)&&(close_time > 10*1000/40))
         {
             if(0 == LightConfig.lightingOn)
             {
@@ -339,9 +408,7 @@ void powerTestTimerCb(uint32_t para)
                 LightModelTurn(0,4,0);
             }
         }
-        
-        leida_adcx_Filter_last=leida_adcx_Filter;
-
+  
     }
 
     if(PowerValue < 2000)
