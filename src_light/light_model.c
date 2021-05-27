@@ -91,8 +91,8 @@ const uint8_t Morsecodemask[][6] = {
     {4,1,0,1,1},
     {3,1,1,0},          //Z
 };
-//uint8_t angle_buffer[11]={0,32,54,66,74,79,83,86,90,94,100};
-uint8_t angle_buffer[11]={0,10,20,30,40,50,60,70,80,90,100};
+uint8_t angle_buffer[11]={0,32,54,66,74,79,83,86,90,94,100};
+// uint8_t angle_buffer[11]={0,10,20,30,40,50,60,70,80,90,100};
 extern void andonServerSendLightStatus(void);
 extern void andonServerSendLightCountDownStatus(void);
 void MorseCodeTimerCb(TIMER_PARAM_TYPE parameter);
