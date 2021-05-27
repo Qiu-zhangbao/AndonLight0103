@@ -388,11 +388,14 @@ void powerTestTimerCb(uint32_t para)
         lightingOn_last= currentCfg.lightingOn;
 
         LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
-        if ((adc_abs>40)&&(close_time > 10*1000/40))
+        if ((adc_abs>40))
         {
-            if(0 == LightConfig.lightingOn)
+            if((0 == currentCfg.lightingOn)&&(TurnOnOffDelay.remaintime == 0 ) )
             {
-                LightModelTurn(1,4,0);
+                if (close_time > 10*1000/40)
+                {
+                    LightModelTurn(1,4,0);
+                }
             }
             PersonOut=0;
         }
@@ -403,7 +406,7 @@ void powerTestTimerCb(uint32_t para)
                 PersonOut = 6*60*1000/40;
             }
             //当人体离开5分钟且灯未关闭时关灯
-            if((LightConfig.lightingOn) && (PersonOut == 5*60*1000/40))
+            if((currentCfg.lightingOn) && (PersonOut == 5*60*1000/40)&&(TurnOnOffDelay.remaintime == 0 ))
             {
                 LightModelTurn(0,4,0);
             }

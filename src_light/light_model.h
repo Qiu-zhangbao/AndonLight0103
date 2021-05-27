@@ -50,7 +50,7 @@ extern LightConfig_def currentCfg;
 
 extern uint8_t transition_time;
 extern LightConfig_def LightConfig;
-
+extern TurnOnOffDelay_t  TurnOnOffDelay;
 //one tick=10ms
 typedef int32_t (*Animination)(int32_t tick, int32_t period, int32_t initiate, int32_t final);
 
