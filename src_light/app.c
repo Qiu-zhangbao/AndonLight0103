@@ -373,9 +373,9 @@ void powerTestTimerCb(uint32_t para)
 
     if(close_time > 11*1000/40)
         close_time=11*1000/40;
-    if(sec>5000/40)
+    if(sec>6*1000/40)
     {
-        sec=6000/40;
+        sec=7*1000/40;
 
         if(lightingOn_last==1 && currentCfg.lightingOn == 0 && flag_close ==1)
         {
@@ -387,8 +387,8 @@ void powerTestTimerCb(uint32_t para)
    
         lightingOn_last= currentCfg.lightingOn;
 
-        LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
-        if ((adc_abs>40))
+        //LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
+        if ((adc_abs>60))
         {
             if((0 == currentCfg.lightingOn)&&(TurnOnOffDelay.remaintime == 0 ) )
             {
