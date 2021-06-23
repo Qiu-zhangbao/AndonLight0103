@@ -355,7 +355,8 @@ void powerTestTimerCb(uint32_t para)
     static uint16_t flag_close=1;     
     static uint16_t lightingOn_last=0;   
             
-            
+    uint8_t debug_data[30]={0};  
+    uint8_t send_debug_data=0;
 
     
     
@@ -387,14 +388,18 @@ void powerTestTimerCb(uint32_t para)
    
         lightingOn_last= currentCfg.lightingOn;
 
-        //LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
-        if ((adc_abs>60))
+        //LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d,send_debug_data:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn,send_debug_data);
+
+        if ((adc_abs>40))
         {
             if((0 == currentCfg.lightingOn)&&(TurnOnOffDelay.remaintime == 0 ) )
             {
                 if (close_time > 10*1000/40)
                 {
+                    mylib_sprintf(debug_data,"{#r_turn_on,abs:%d}$",adc_abs);
+                    send_debug_data = wiced_bt_gatt_send_notification(1, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, sizeof(debug_data), debug_data);
                     LightModelTurn(1,4,0);
+                    currentCfg.lightingOn = 1;
                 }
             }
             PersonOut=0;
@@ -408,7 +413,10 @@ void powerTestTimerCb(uint32_t para)
             //当人体离开5分钟且灯未关闭时关灯
             if((currentCfg.lightingOn) && (PersonOut == 5*60*1000/40)&&(TurnOnOffDelay.remaintime == 0 ))
             {
+                mylib_sprintf(debug_data,"{#r_turn_off,abs:%d}$",adc_abs);
+                send_debug_data = wiced_bt_gatt_send_notification(1, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, sizeof(debug_data), debug_data);
                 LightModelTurn(0,4,0);
+                currentCfg.lightingOn = 0;
             }
         }
   
