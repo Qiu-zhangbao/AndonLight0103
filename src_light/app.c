@@ -355,7 +355,7 @@ void powerTestTimerCb(uint32_t para)
     static uint16_t flag_close=1;     
     static uint16_t lightingOn_last=0;   
             
-    uint8_t debug_data[30]={0};  
+    uint8_t debug_data[40]={0};  
     uint8_t send_debug_data=0;
 
     
@@ -365,8 +365,8 @@ void powerTestTimerCb(uint32_t para)
     // LOG_DEBUG("PowerValue %d!!!!!\n",PowerValue);
     if(lastPowerValue == 0)
         lastPowerValue = PowerValue;
-
-    adcx_Filter=filter(wiced_hal_adc_read_voltage( ADC_INPUT_P0));
+    adcx=wiced_hal_adc_read_voltage( ADC_INPUT_P0);
+    adcx_Filter=filter(adcx);
     adc_abs=find_max_min_abs(adcx_Filter);
 
     sec++;
@@ -388,9 +388,12 @@ void powerTestTimerCb(uint32_t para)
    
         lightingOn_last= currentCfg.lightingOn;
 
+        mylib_sprintf(debug_data,"{B%d:%d:%d:%d}$",adcx,adcx_Filter,adc_abs,currentCfg.lightingOn);
+        send_debug_data = wiced_bt_gatt_send_notification(1, HANDLE_ANDON_SERVICE_CHAR_NOTIFY_VAL, sizeof(debug_data), debug_data);
+                   
         //LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d,send_debug_data:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn,send_debug_data);
 
-        if ((adc_abs>40))
+        if ((adc_abs>60))
         {
             if((0 == currentCfg.lightingOn)&&(TurnOnOffDelay.remaintime == 0 ) )
             {
