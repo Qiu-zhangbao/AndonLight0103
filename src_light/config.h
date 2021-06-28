@@ -52,8 +52,8 @@
 // #define MESH_VID      (0x0101)
 
 #define ANDON_FW_MAJOR          0         //0--9
-#define ANDON_FW_MINOR          1         //0--9
-#define ANDON_FW_PATCH          0xA        //0--127
+#define ANDON_FW_MINOR          2         //0--9
+#define ANDON_FW_PATCH          0        //0--127
 #define VERSION                 ((ANDON_FW_MAJOR<<12)&0xF000 | (ANDON_FW_MINOR<<8)&0x0F00 | ANDON_FW_PATCH&0xFF)
 //#define MESH_FWID 0x3008000101010001
 // #define VERSION       (0x0005)

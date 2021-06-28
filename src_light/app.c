@@ -387,8 +387,8 @@ void powerTestTimerCb(uint32_t para)
    
         lightingOn_last= currentCfg.lightingOn;
 
-        LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
-        if ((adc_abs>40))
+        // LOG_DEBUG("adc_abs:%d,adcx_Filter:%d,close_time:%d,currentCfg.lightingOn:%d\n",adc_abs,adcx_Filter,close_time*40,currentCfg.lightingOn);
+        if ((adc_abs>60))
         {
             if((0 == currentCfg.lightingOn)&&(TurnOnOffDelay.remaintime == 0 ) )
             {

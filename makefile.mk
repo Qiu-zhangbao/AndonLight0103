@@ -95,7 +95,7 @@ APP_SRC += src_light/raw_flash.c
 #APP_SRC += src_light/record.c
 APP_SRC += src_light/llog.c
 APP_SRC += src_light/tooling.c
-APP_SRC += src_light/sflash_test.c
+# APP_SRC += src_light/sflash_test.c
 APP_SRC += src_light/andon_server.c
 
 APP_SRC += src_light/systimer.c
