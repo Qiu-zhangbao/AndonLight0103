@@ -756,11 +756,14 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
             // currentCfg.lightnessLevel = parabola_transfer(tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
             // currentCfg.lightnessLevel = polyline_transfer2(tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
             // currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, percentage_to_uint16(1) + 1);
-            if((lightdelayflag == WICED_TRUE) && (uint16_to_percentage(initiate_brightness) < 6)){
-                currentCfg.lightnessLevel = initiate_brightness;
-            }else{
-                currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, 1);
-            }
+            // if((lightdelayflag == WICED_TRUE) )/*&& (uint16_to_percentage(initiate_brightness) < 6))*/{
+            //     currentCfg.lightnessLevel = initiate_brightness;
+            // }else{
+                // currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, 1);
+
+                currentCfg.lightnessLevel = liner_transfer(tick, period, initiate_brightness, 0);
+            // }
+            LOG_DEBUG("initiate_brightness:%d,currentCfg.lightnessLevel:%d\n",initiate_brightness,currentCfg.lightnessLevel);
         }
         else
         {
@@ -784,7 +787,7 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
             }else{
                 currentCfg.lightnessLevel = percentage_to_uint16(1);
             }
-            LOG_VERBOSE("turn on duty = %d\n",LightConfig.lightnessLevel);
+            LOG_DEBUG("currentCfg.lightnessLevel:%d\n",currentCfg.lightnessLevel);
         }
         else if (tick < period)
         {
@@ -792,17 +795,20 @@ int32_t turn_onoff_procedure(int32_t tick, int32_t period, int32_t initiate, int
                 ani_method = 0;
             // currentCfg.lightnessLevel = liner_transfer(tick, period, percentage_to_uint16(1) + 1, LightConfig.lightnessLevel);
             // currentCfg.lightnessLevel = ani_table[ani_method](tick, period, percentage_to_uint16(1) + 1, LightConfig.lightnessLevel);
-            if(lightdelayflag == WICED_TRUE) {
-                if(uint16_to_percentage(LightConfig.lightnessLevel) < 10){
-                    currentCfg.lightnessLevel = LightConfig.lightnessLevel;
-                }else if(tick < period - (20/LIGHT_TIMER_UINT)){
-                    currentCfg.lightnessLevel = percentage_to_uint16(10);
-                }else{
-                   currentCfg.lightnessLevel = ani_table[ani_method](tick, period, percentage_to_uint16(10), LightConfig.lightnessLevel); 
-                }
-            }else{
-                currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, LightConfig.lightnessLevel);
-            }
+            // if(lightdelayflag == WICED_TRUE) {
+            //     if(uint16_to_percentage(LightConfig.lightnessLevel) < 10){
+            //         currentCfg.lightnessLevel = LightConfig.lightnessLevel;
+            //     }else if(tick < period - (20/LIGHT_TIMER_UINT)){
+            //         currentCfg.lightnessLevel = percentage_to_uint16(10);
+            //     }else{
+            //        currentCfg.lightnessLevel = ani_table[ani_method](tick, period, percentage_to_uint16(10), LightConfig.lightnessLevel); 
+            //     }
+            // }else{
+                // currentCfg.lightnessLevel = ani_table[ani_method](tick, period, initiate_brightness, LightConfig.lightnessLevel);
+                currentCfg.lightnessLevel = liner_transfer(tick, period, 0, LightConfig.lightnessLevel);
+            // }
+
+            LOG_DEBUG("initiate_brightness:%d,currentCfg.lightnessLevel:%d\n",initiate_brightness,currentCfg.lightnessLevel);
         }
         else
         {
@@ -1149,7 +1155,7 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
 
     ctx.anim = turn_onoff_procedure;
     ctx.tick = 1;
-    ctx.period = transt_to_period(5)/LIGHT_TIMER_UINT;
+    ctx.period = transt_to_period(10)/LIGHT_TIMER_UINT;
     if(ctx.period == 0)
     {
         ctx.period = 1;
