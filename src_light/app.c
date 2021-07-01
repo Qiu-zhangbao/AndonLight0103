@@ -338,7 +338,7 @@ uint16_t close_time = 0;
 #if (CHECK_POWEROFF_VALUE) && (!CHECK_POWEROFF_INTT)
 void powerTestTimerCb(uint32_t para)
 {
-    extern void mesh_app_gatt_is_disconnected(void);
+    // extern void mesh_app_gatt_is_disconnected(void);//自复位开关~~关闭连接
     static uint16_t PowerOffCnt = 0;
     static uint16_t PowerDeltaCnt = 0;
     static int16_t lastPowerValue = 0;
@@ -454,7 +454,7 @@ void powerTestTimerCb(uint32_t para)
                 reset_process();
                 StoreConfigDelay(); 
                 fastadvenable = WICED_TRUE;
-                appadvenable  = WICED_TRUE;
+                // appadvenable  = WICED_TRUE;//自复位开关关闭2S关闭广播
                 appAndonBleConnectUsed();
                 adv_pair_disable();
                 adv_pair_enable();
@@ -496,17 +496,17 @@ void powerTestTimerCb(uint32_t para)
         LOG_DEBUG("LightToggle for Power!!!!!\n");
     }
 
-    if(PowerOffCnt>50)
-    {
-        if(mesh_app_gatt_is_connected())
-        {
-            mesh_app_gatt_is_disconnected();
-            LOG_DEBUG("gatt_is_disconnected\n");
-        }
-        appSetAdvDisable();
-        LOG_DEBUG("wiced_bt_stop_advertisements\n");
-        PowerOffCnt=0;
-    }
+    // if(PowerOffCnt>50)//自复位开关按下2S关闭广播
+    // {
+    //     if(mesh_app_gatt_is_connected())
+    //     {
+    //         mesh_app_gatt_is_disconnected();
+    //         LOG_DEBUG("gatt_is_disconnected\n");
+    //     }
+    //     appSetAdvDisable();
+    //     LOG_DEBUG("wiced_bt_stop_advertisements\n");
+    //     PowerOffCnt=0;
+    // }
 
     // testpowercnt++;
     // if(testpowercnt == 50){

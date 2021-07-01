@@ -20,7 +20,7 @@
 #define lightCANCLETRANSIONTIME  (1<<0)
 #define lightCANCLECOUNTDOWN     (1<<1)
 
-#define LIGHT_TIMER_CB_LENGTH    50
+#define LIGHT_TIMER_CB_LENGTH    25
 
 #define MORSE_MAX_CHAR           15
 #define MORSE_MAX_BIT            100
@@ -91,8 +91,8 @@ const uint8_t Morsecodemask[][6] = {
     {4,1,0,1,1},
     {3,1,1,0},          //Z
 };
-uint8_t angle_buffer[11]={0,32,54,66,74,79,83,86,90,94,100};
-// uint8_t angle_buffer[11]={0,10,20,30,40,50,60,70,80,90,100};
+// uint8_t angle_buffer[11]={0,32,54,66,74,79,83,86,90,94,100};
+uint8_t angle_buffer[11]={0,10,20,30,40,50,60,70,80,90,100};
 extern void andonServerSendLightStatus(void);
 extern void andonServerSendLightCountDownStatus(void);
 void MorseCodeTimerCb(TIMER_PARAM_TYPE parameter);
@@ -1008,7 +1008,6 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
 {
     if (transitiontime == 0xff)
         transitiontime = transition_time;
-    
     //延迟开关灯，但延迟功能关闭
     if((delay == 0xFF) && (0 == LightConfig.offdelayset))
     {
@@ -1150,6 +1149,7 @@ void LightModelToggle(int8_t reserved, uint8_t transitiontime, uint16_t delay)
 
     ctx.anim = turn_onoff_procedure;
     ctx.tick = 1;
+    ctx.period = transt_to_period(5)/LIGHT_TIMER_UINT;
     if(ctx.period == 0)
     {
         ctx.period = 1;
@@ -1516,7 +1516,6 @@ void LightModelSetBrightness(int8_t percetange, uint8_t transitiontime, uint16_t
 void LightModelDeltaAngle(int8_t delta_in, uint8_t transitiontime, uint16_t delay)
 {
     static int8_t step=5;
-    transitiontime = 5;
     LOG_DEBUG("Angle_Delata: %d  transitiontime: %d\n",delta_in,transitiontime);
     if(delta_in == 0){
         return;
@@ -1549,10 +1548,10 @@ void LightModelDeltaAngle(int8_t delta_in, uint8_t transitiontime, uint16_t dela
             wiced_stop_timer(&transitionTimer);
             //wiced_deinit_timer(&transitionTimer);
         }
-        transitiontime = 5;
+
         ctx.anim = angle_procedure;
         ctx.tick = 1;
-        ctx.period = transt_to_period(transitiontime)/LIGHT_TIMER_UINT;
+        ctx.period = transt_to_period(5)/LIGHT_TIMER_UINT;
         ctx.initiate = currentCfg.lightnessCTL;
         ctx.final = LightConfig.lightnessCTL;
         ctx.PreLightnessLevel = LightConfig.lightnessLevel;
@@ -1577,7 +1576,7 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
         transitiontime = transition_time;
     ctx.PrePowerTick = 0xFFFF;
     
-    transitiontime = 0;
+    transitiontime = 5;
     if(morsecodedisplay == WICED_TRUE){
         if(wiced_is_timer_in_use(&morsecodeTimer)){
             wiced_stop_timer(&morsecodeTimer);
@@ -1651,7 +1650,7 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
             //     }
             // }
             if(delta != 100){
-                delta = delta + 2 - deltastep;
+                delta = delta + 1 - deltastep;
             }
             delta_raw = percentage_to_uint16(delta);
             // if(delta_in == 1){
@@ -1669,7 +1668,7 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
         if (currentCfg.lightingOn == 0)
         {
             //currentCfg.lightingOn = 1;
-            currentCfg.lightnessLevel = 656*2;
+            currentCfg.lightnessLevel = 656*1;
         }
 
         // if (LightConfig.lightingOn == 0)
@@ -1696,9 +1695,9 @@ void LightModelDeltaBrightness(int8_t delta_in, uint8_t transitiontime, uint16_t
                 //旋转到最后一档亮度&当前亮度>1%，则最低亮度置为1% 
                 // if( ((delta_in == -1) || (delta_in == -50) || (currentCfg.lightnessLevel < (delta_raw+percentage_to_uint16(deltastep)))) 
                 //     && (uint16_to_percentage(currentCfg.lightnessLevel) > 1))
-                if(uint16_to_percentage(currentCfg.lightnessLevel) > 2)
+                if(uint16_to_percentage(currentCfg.lightnessLevel) > 1)
                 {
-                    LightConfig.lightnessLevel = percentage_to_uint16(2);
+                    LightConfig.lightnessLevel = percentage_to_uint16(1);
                     if(LightConfig.lightingOn == 0){
                         LightConfig.lightingOn = 1;
                     }

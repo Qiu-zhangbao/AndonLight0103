@@ -218,7 +218,7 @@ extern wiced_bt_ble_userscan_result_cback_t *adv_manufacturer_handler;
 
 const uint8_t aes128key[16] = "com.jiuan.SLight";
 #if CHIP_SCHEME == CHIP_DEVKIT
-const uint8_t adv_send_data_head[] = {ADV_PACK_LEN - 1, BTM_BLE_ADVERT_TYPE_MANUFACTURER, 0x04,0x08,'q', 'z', 'b'};
+const uint8_t adv_send_data_head[] = {ADV_PACK_LEN - 1, BTM_BLE_ADVERT_TYPE_MANUFACTURER, 0x04,0x08,'Q', 'Z', 'B'};
 // const uint8_t adv_send_data_head[] = {ADV_PACK_LEN - 1, BTM_BLE_ADVERT_TYPE_MANUFACTURER, 0x04,0x08,'W', 'y', 'z'};
 #else
 const uint8_t adv_send_data_head[] = {ADV_PACK_LEN - 1, BTM_BLE_ADVERT_TYPE_MANUFACTURER, 0x04,0x08,'W', 'y', 'z'};
